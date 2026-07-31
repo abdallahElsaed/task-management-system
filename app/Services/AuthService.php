@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Contracts\Repositories\UserRepositoryInterface;
 use App\Exceptions\InvalidCredentialsException;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\PersonalAccessToken;
 
-final class AuthService
+final readonly class AuthService
 {
-    private const TOKEN_NAME = 'api';
+    private const string TOKEN_NAME = 'api';
+
+    public function __construct(private UserRepositoryInterface $users) {}
 
     /**
      * Create an account and issue its first token, so a new account holder
@@ -22,12 +26,14 @@ final class AuthService
      */
     public function register(array $data): array
     {
-        $user = User::create($data);
+        return DB::transaction(function () use ($data): array {
+            $user = $this->users->create($data);
 
-        return [
-            'user' => $user,
-            'token' => $this->issueToken($user),
-        ];
+            return [
+                'user' => $user,
+                'token' => $this->issueToken($user),
+            ];
+        });
     }
 
     /**
@@ -37,9 +43,9 @@ final class AuthService
      */
     public function login(string $email, string $password): array
     {
-        $user = User::firstWhere('email', $email);
+        $user = $this->users->findByEmail($email);
 
-        if (! $user instanceof User) {
+        if ($user === null) {
             // Spend the cost of a hash anyway, so the time taken to answer
             // never reveals whether the email is registered.
             Hash::make($password);

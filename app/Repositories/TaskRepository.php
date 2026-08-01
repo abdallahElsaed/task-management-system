@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Contracts\Repositories\TaskRepositoryInterface;
+use App\DTOs\Dashboard\TaskCounts;
 use App\DTOs\Tasks\TaskFilters;
 use App\Enums\Tasks\TaskPriority;
 use App\Enums\Tasks\TaskStatus;
@@ -38,6 +39,27 @@ final readonly class TaskRepository implements TaskRepositoryInterface
             )
             ->dueSoonestFirst()
             ->paginate($perPage);
+    }
+
+    /**
+     * `ownedBy` carries the soft-delete rule for the task and for its project, so
+     * a deleted project takes its tasks out of every count in the same moment.
+     * The owner's tasks are selected once and the four numbers are
+     * counted off that one pass by `selectStatusCounts`, which holds the SQL for.
+     *
+     * An aggregate with no `group by` always answers with exactly one row, so the
+     * counts are read straight off it.
+     */
+    public function countsForOwner(int $ownerId): TaskCounts
+    {
+        $counts = Task::ownedBy($ownerId)->selectStatusCounts()->toBase()->first();
+
+        return new TaskCounts(
+            total: (int) $counts->{Task::TOTAL_COUNT},
+            completed: (int) $counts->{Task::COMPLETED_COUNT},
+            pending: (int) $counts->{Task::PENDING_COUNT},
+            overdue: (int) $counts->{Task::OVERDUE_COUNT},
+        );
     }
 
     public function existsForOwner(int $ownerId): bool
@@ -79,7 +101,7 @@ final readonly class TaskRepository implements TaskRepositoryInterface
 
     /**
      * Soft deletes rewrite this into a single UPDATE, so a project holding many
-     * tasks still costs one statement (BR-9).
+     * tasks still costs one statement.
      *
      * @return int the number of tasks removed
      */

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\TaskController;
 use Illuminate\Support\Facades\Route;
@@ -12,6 +13,10 @@ Route::post('login', [AuthController::class, 'login'])
 
 Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
+
+    // One read that replaces six list calls, so it sits beside the modules it
+    // summarises rather than inside either of them.
+    Route::get('dashboard', [DashboardController::class, 'show'])->name('dashboard.show');
 
     Route::prefix('projects')->name('projects.')->group(function (): void {
         Route::get('/', [ProjectController::class, 'index'])->name('index');

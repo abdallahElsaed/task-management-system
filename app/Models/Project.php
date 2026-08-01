@@ -24,6 +24,14 @@ class Project extends Model
     use HasFactory, SoftDeletes;
 
     /**
+     * The aliases `selectStatusCounts` returns its two numbers under. They are the
+     * contract between that scope and whoever reads the row it produces.
+     */
+    public const string TOTAL_COUNT = 'total_count';
+
+    public const string ACTIVE_COUNT = 'active_count';
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
@@ -71,6 +79,36 @@ class Project extends Model
     protected function withTaskCount(Builder $query): void
     {
         $query->withCount('tasks');
+    }
+
+    /**
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function withStatus(Builder $query, ProjectStatus $status): void
+    {
+        $query->where('status', $status);
+    }
+
+    /**
+     * Both dashboard numbers in a single pass over whatever projects the caller has
+     * already scoped to. `status` sits in no index, so counting the active projects
+     * as a second statement reads the owner's rows a second time; as a conditional
+     * aggregate it rides along with the total.
+     *
+     * The predicate repeats `withStatus` in SQL because an aggregate cannot call a
+     * scope. They must be changed together.
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function selectStatusCounts(Builder $query): void
+    {
+        $query->selectRaw('count(*) as '.self::TOTAL_COUNT)
+            ->selectRaw(
+                'count(case when status = ? then 1 end) as '.self::ACTIVE_COUNT,
+                [ProjectStatus::Active->value],
+            );
     }
 
     /**

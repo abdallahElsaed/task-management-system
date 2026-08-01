@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contracts\Repositories;
 
+use App\DTOs\Dashboard\TaskCounts;
 use App\DTOs\Tasks\TaskFilters;
 use App\Models\Task;
 use App\Repositories\TaskRepository;
@@ -17,6 +18,8 @@ interface TaskRepositoryInterface
      * @return LengthAwarePaginator<int, Task>
      */
     public function paginateForOwner(int $ownerId, TaskFilters $filters, int $perPage): LengthAwarePaginator;
+
+    public function countsForOwner(int $ownerId): TaskCounts;
 
     public function existsForOwner(int $ownerId): bool;
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contracts\Repositories;
 
+use App\DTOs\Dashboard\ProjectCounts;
 use App\Models\Project;
 use App\Repositories\ProjectRepository;
 use Illuminate\Container\Attributes\Bind;
@@ -16,6 +17,8 @@ interface ProjectRepositoryInterface
      * @return LengthAwarePaginator<int, Project>
      */
     public function paginateForOwner(int $ownerId, int $perPage): LengthAwarePaginator;
+
+    public function countsForOwner(int $ownerId): ProjectCounts;
 
     public function findForOwner(int $ownerId, int $projectId): ?Project;
 

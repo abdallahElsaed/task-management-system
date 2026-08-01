@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Contracts\Repositories\ProjectRepositoryInterface;
+use App\DTOs\Dashboard\ProjectCounts;
 use App\Models\Project;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -19,6 +20,24 @@ final readonly class ProjectRepository implements ProjectRepositoryInterface
             ->withTaskCount()
             ->newestFirst()
             ->paginate($perPage);
+    }
+
+    /**
+     * The owner's projects are selected once and both numbers are counted off that
+     * one pass by `selectStatusCounts`. The soft-delete scope excludes deleted
+     * projects from both (FT-004 BR-7).
+     *
+     * An aggregate with no `group by` always answers with exactly one row, so the
+     * counts are read straight off it.
+     */
+    public function countsForOwner(int $ownerId): ProjectCounts
+    {
+        $counts = Project::ownedBy($ownerId)->selectStatusCounts()->toBase()->first();
+
+        return new ProjectCounts(
+            total: (int) $counts->{Project::TOTAL_COUNT},
+            active: (int) $counts->{Project::ACTIVE_COUNT},
+        );
     }
 
     /**

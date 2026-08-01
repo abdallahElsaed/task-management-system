@@ -23,6 +23,18 @@ class Task extends Model
     use HasFactory, SoftDeletes;
 
     /**
+     * The aliases `selectStatusCounts` returns its four numbers under. They are the
+     * contract between that scope and whoever reads the row it produces.
+     */
+    public const string TOTAL_COUNT = 'total_count';
+
+    public const string COMPLETED_COUNT = 'completed_count';
+
+    public const string PENDING_COUNT = 'pending_count';
+
+    public const string OVERDUE_COUNT = 'overdue_count';
+
+    /**
      * @return BelongsTo<Project, $this>
      */
     public function project(): BelongsTo
@@ -67,6 +79,19 @@ class Task extends Model
     }
 
     /**
+     * Pending is Todo and In Progress together (FT-004 Metric Definitions, D-1).
+     * An overdue task is pending as well: the two counts overlap rather than
+     * divide the work between them (FT-004 BR-3).
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function pending(Builder $query): void
+    {
+        $query->whereIn('status', [TaskStatus::Todo, TaskStatus::InProgress]);
+    }
+
+    /**
      * @param  Builder<$this>  $query
      */
     #[Scope]
@@ -101,6 +126,27 @@ class Task extends Model
     {
         $query->where('due_date', '<', today()->toDateString())
             ->whereNot('status', TaskStatus::Done);
+    }
+
+    /**
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function selectStatusCounts(Builder $query): void
+    {
+        $query->selectRaw('count(*) as '.self::TOTAL_COUNT)
+            ->selectRaw(
+                'count(case when status = ? then 1 end) as '.self::COMPLETED_COUNT,
+                [TaskStatus::Done->value],
+            )
+            ->selectRaw(
+                'count(case when status in (?, ?) then 1 end) as '.self::PENDING_COUNT,
+                [TaskStatus::Todo->value, TaskStatus::InProgress->value],
+            )
+            ->selectRaw(
+                'count(case when status <> ? and due_date < ? then 1 end) as '.self::OVERDUE_COUNT,
+                [TaskStatus::Done->value, today()->toDateString()],
+            );
     }
 
     /**

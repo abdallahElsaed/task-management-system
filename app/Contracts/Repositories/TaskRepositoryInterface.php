@@ -10,6 +10,7 @@ use App\Models\Task;
 use App\Repositories\TaskRepository;
 use Illuminate\Container\Attributes\Bind;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 #[Bind(TaskRepository::class)]
 interface TaskRepositoryInterface
@@ -41,4 +42,32 @@ interface TaskRepositoryInterface
      * @return int the number of tasks removed
      */
     public function deleteAllForProject(int $projectId): int;
+
+    /**
+     * @return list<int> the id of every account holding at least one task the
+     *                   overdue sweep still owes an email
+     */
+    public function ownerIdsWithUnreportedOverdueTasks(): array;
+
+    /**
+     * @return Collection<int, Task> longest overdue first
+     */
+    public function unreportedOverdueForOwner(int $ownerId): Collection;
+
+    /**
+     * @param  list<int>  $taskIds
+     * @return int the number of tasks marked
+     */
+    public function markAsReported(array $taskIds): int;
+
+    /**
+     * @param  list<int>  $taskIds
+     * @return int the number of tasks released
+     */
+    public function clearReported(array $taskIds): int;
+
+    /**
+     * @return int the number of tasks marked
+     */
+    public function markAllOverdueAsReported(): int;
 }

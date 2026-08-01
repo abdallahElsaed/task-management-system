@@ -129,6 +129,19 @@ class Task extends Model
     }
 
     /**
+     * Never named in an overdue email, which is the condition adds on
+     * top of `overdue`. Reporting is permanent, so this narrows by itself over
+     * time and never widens again.
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function unreported(Builder $query): void
+    {
+        $query->whereNull('overdue_notified_at');
+    }
+
+    /**
      * @param  Builder<$this>  $query
      */
     #[Scope]
@@ -160,6 +173,7 @@ class Task extends Model
             'priority' => TaskPriority::class,
             'status' => TaskStatus::class,
             'due_date' => 'date',
+            'overdue_notified_at' => 'datetime',
         ];
     }
 }

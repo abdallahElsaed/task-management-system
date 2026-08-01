@@ -21,4 +21,13 @@ final readonly class UserRepository implements UserRepositoryInterface
     {
         return User::firstWhere('email', $email);
     }
+
+    /**
+     * The queued overdue digest carries an id rather than a serialized account, so
+     * it reads the current name and address at the moment it sends (FT-005 BR-7).
+     */
+    public function find(int $userId): ?User
+    {
+        return User::find($userId);
+    }
 }

@@ -9,9 +9,12 @@ use App\DTOs\Dashboard\TaskCounts;
 use App\DTOs\Tasks\TaskFilters;
 use App\Enums\Tasks\TaskPriority;
 use App\Enums\Tasks\TaskStatus;
+use App\Models\Project;
 use App\Models\Task;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 final readonly class TaskRepository implements TaskRepositoryInterface
 {
@@ -108,5 +111,83 @@ final readonly class TaskRepository implements TaskRepositoryInterface
     public function deleteAllForProject(int $projectId): int
     {
         return Task::where('project_id', $projectId)->delete();
+    }
+
+    /**
+     * Asked from the project side because that is where the owner lives, and
+     * because the soft-delete scope on `projects` is what keeps a deleted
+     * project's tasks out of the sweep. The relation carries the task's own
+     * soft-delete rule, so a deleted task is out too.
+     *
+     * One statement for the whole sweep: the accounts that owe an email, and no
+     * others, so an account with nothing newly overdue is never visited.
+     *
+     * @return list<int>
+     */
+    public function ownerIdsWithUnreportedOverdueTasks(): array
+    {
+        return Project::whereHas(
+            'tasks',
+            fn (Builder $tasks) => $tasks->overdue()->unreported(),
+        )->distinct()->pluck('user_id')->all();
+    }
+
+    /**
+     * Only the four columns the email is built from are read, because an account
+     * that has let a hundred tasks go late still has to fit in one message.
+     *
+     * `dueSoonestFirst` is the longest-overdue-first order read the other way
+     * round: the oldest due date is the one that has been late longest.
+     *
+     * @return Collection<int, Task>
+     */
+    public function unreportedOverdueForOwner(int $ownerId): Collection
+    {
+        return Task::ownedBy($ownerId)
+            ->overdue()
+            ->unreported()
+            ->with('project:id,name')
+            ->dueSoonestFirst()
+            ->get(['id', 'project_id', 'title', 'due_date']);
+    }
+
+    /**
+     * @param  list<int>  $taskIds
+     */
+    public function markAsReported(array $taskIds): int
+    {
+        return $this->setReportedAt($taskIds, now());
+    }
+
+    /**
+     * A digest that failed every attempt leaves its tasks unreported, so
+     * tomorrow's sweep finds them again.
+     *
+     * @param  list<int>  $taskIds
+     */
+    public function clearReported(array $taskIds): int
+    {
+        return $this->setReportedAt($taskIds, null);
+    }
+
+    /**
+     *  run once when the feature is switched on. It reuses `overdue`
+     * so the tasks it silences are exactly the ones the sweep would have emailed.
+     */
+    public function markAllOverdueAsReported(): int
+    {
+        return Task::overdue()->unreported()->toBase()->update(['overdue_notified_at' => now()]);
+    }
+
+    /**
+     * Written through the base builder so that `updated_at` stays where it is:
+     * being named in an email is not an edit the account holder made, and
+     * task payload reports that timestamp.
+     *
+     * @param  list<int>  $taskIds
+     */
+    private function setReportedAt(array $taskIds, ?CarbonInterface $reportedAt): int
+    {
+        return Task::whereKey($taskIds)->toBase()->update(['overdue_notified_at' => $reportedAt]);
     }
 }

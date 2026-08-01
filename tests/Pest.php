@@ -48,6 +48,26 @@ function projectPayload(array $overrides = []): array
 }
 
 /**
+ * A complete, valid create-task body that individual tests override field by field.
+ *
+ * The caller supplies the project id, because a task always belongs to one (BR-1).
+ * Priority and status are left out on purpose, so the default path (BR-7, BR-8) is
+ * what most tests exercise.
+ *
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
+function taskPayload(int $projectId, array $overrides = []): array
+{
+    return array_merge([
+        'project_id' => $projectId,
+        'title' => 'Fix login bug',
+        'description' => 'The form rejects valid credentials',
+        'due_date' => '2026-08-15',
+    ], $overrides);
+}
+
+/**
  * Issue a token directly, for tests about what a token does rather than how it is obtained.
  */
 function tokenFor(User $user): string

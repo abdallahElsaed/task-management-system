@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ProjectController;
+use App\Http\Controllers\Api\V1\TaskController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('register', [AuthController::class, 'register'])->name('auth.register');
@@ -23,6 +24,22 @@ Route::middleware('auth:sanctum')->group(function (): void {
             ->name('update');
         Route::delete('/{project}', [ProjectController::class, 'destroy'])
             ->whereNumber('project')
+            ->name('destroy');
+    });
+
+    // The list spans every project the caller owns, with the project as an
+    // optional filter rather than a path segment (FT-003 D-5).
+    Route::prefix('tasks')->name('tasks.')->group(function (): void {
+        Route::get('/', [TaskController::class, 'index'])->name('index');
+        Route::post('/', [TaskController::class, 'store'])->name('store');
+        Route::get('/{task}', [TaskController::class, 'show'])
+            ->whereNumber('task')
+            ->name('show');
+        Route::match(['put', 'patch'], '/{task}', [TaskController::class, 'update'])
+            ->whereNumber('task')
+            ->name('update');
+        Route::delete('/{task}', [TaskController::class, 'destroy'])
+            ->whereNumber('task')
             ->name('destroy');
     });
 });

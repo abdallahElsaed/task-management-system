@@ -2,6 +2,7 @@
 
 use App\Exceptions\InvalidCredentialsException;
 use App\Exceptions\Projects\ProjectNotFoundException;
+use App\Exceptions\Tasks\TaskNotFoundException;
 use App\Http\Support\ApiResponse;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
@@ -41,6 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 $e instanceof HttpResponseException => null,
                 $e instanceof InvalidCredentialsException => ApiResponse::unauthorized($e->getMessage()),
                 $e instanceof ProjectNotFoundException => ApiResponse::notFound($e->getMessage()),
+                $e instanceof TaskNotFoundException => ApiResponse::notFound($e->getMessage()),
                 $e instanceof AuthenticationException => ApiResponse::unauthorized(),
                 $e instanceof ValidationException => ApiResponse::validationError($e->getMessage(), $e->errors()),
                 $e instanceof NotFoundHttpException => ApiResponse::notFound('Endpoint not found.'),

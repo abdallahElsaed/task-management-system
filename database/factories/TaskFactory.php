@@ -29,4 +29,35 @@ class TaskFactory extends Factory
             'due_date' => fake()->dateTimeBetween('-1 month', '+2 months')->format('Y-m-d'),
         ];
     }
+
+    /**
+     * Indicate that the work is finished.
+     */
+    public function done(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => TaskStatus::Done,
+        ]);
+    }
+
+    /**
+     * Indicate that the work has started.
+     */
+    public function inProgress(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => TaskStatus::InProgress,
+        ]);
+    }
+
+    /**
+     * A due date already past, with a status that still counts as outstanding (BR-12).
+     */
+    public function overdue(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'due_date' => today()->subWeek()->toDateString(),
+            'status' => TaskStatus::Todo,
+        ]);
+    }
 }

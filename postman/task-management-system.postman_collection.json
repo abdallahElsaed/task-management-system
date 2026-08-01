@@ -1,0 +1,523 @@
+{
+  "info": {
+    "name": "Task Management System API",
+    "description": "Every endpoint of the Task Management System API, grouped by module.\n\n**Before you start:** set the `base_url` variable to wherever the API is running. It is the only thing you should ever need to change.\n\n**About the token:** run `Authentication > Log in` first. Its test script stores the returned token in the `token` collection variable, and every other request inherits it as a bearer token from the collection's Authorization tab. You never copy a token by hand.\n\nThe seeded demo account is `demo@example.com` / `password123`, and it is already filled in on the login request.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api/v1",
+      "type": "string",
+      "description": "The only value you need to change to point the whole collection at another host."
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string",
+      "description": "Filled in automatically by the Log in and Register requests."
+    },
+    {
+      "key": "project_id",
+      "value": "1",
+      "type": "string",
+      "description": "Filled in automatically by List projects and Create a project."
+    },
+    {
+      "key": "task_id",
+      "value": "1",
+      "type": "string",
+      "description": "Filled in automatically by List tasks and Create a task."
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "Register, log in and log out. These are the only endpoints reachable without a token.",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('registered and issued a token', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    pm.expect(body.data.token).to.be.a('string').and.not.empty;",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('token', body.data.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Sara Ali\",\n    \"email\": \"sara@example.com\",\n    \"password\": \"secret123\",\n    \"password_confirmation\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/register",
+              "host": ["{{base_url}}"],
+              "path": ["register"]
+            },
+            "description": "Creates an account and issues its first token, so there is no need to log in straight afterwards.\n\nSend a second time with the same email address to see the `422` rejection.\n\n**Responses:** `201` the account and its token · `422` a field was rejected."
+          }
+        },
+        {
+          "name": "Log in",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('logged in and issued a token', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(body.data.token).to.be.a('string').and.not.empty;",
+                  "});",
+                  "",
+                  "// Every other request in this collection reads this variable, so run",
+                  "// this request first and nothing else needs a token pasted into it.",
+                  "pm.collectionVariables.set('token', body.data.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"demo@example.com\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": ["{{base_url}}"],
+              "path": ["login"]
+            },
+            "description": "**Run this first.** The seeded demo credentials are already filled in.\n\nSix failed attempts on the same email address inside a minute are throttled rather than checked.\n\n**Responses:** `200` the account and a fresh token · `401` the credentials do not match · `422` a field was rejected · `429` throttled."
+          }
+        },
+        {
+          "name": "Log out",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('revokes the token', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// The token this request just revoked is the one the rest of the",
+                  "// collection was using, so a fresh one is fetched here. That is what",
+                  "// lets the collection be run straight through from top to bottom.",
+                  "pm.sendRequest({",
+                  "    url: pm.collectionVariables.get('base_url') + '/login',",
+                  "    method: 'POST',",
+                  "    header: { 'Accept': 'application/json', 'Content-Type': 'application/json' },",
+                  "    body: {",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify({ email: 'demo@example.com', password: 'password123' })",
+                  "    }",
+                  "}, function (err, res) {",
+                  "    if (! err) {",
+                  "        pm.collectionVariables.set('token', res.json().data.token);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/logout",
+              "host": ["{{base_url}}"],
+              "path": ["logout"]
+            },
+            "description": "Revokes only the token this request arrived with. Tokens issued to the same account elsewhere keep working.\n\nSo that the collection can be run straight through, this request's test script logs the demo account back in and stores the new token. Running it on its own therefore leaves you logged in.\n\n**Responses:** `200` the token is revoked · `401` no usable token was sent."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects",
+      "description": "Your own projects. A project belonging to another account answers `404`, exactly as one that never existed does.",
+      "item": [
+        {
+          "name": "List projects",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('returns a page of projects', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(body.meta).to.have.property('total');",
+                  "});",
+                  "",
+                  "if (body.data.length > 0) {",
+                  "    pm.collectionVariables.set('project_id', body.data[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/projects?per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["projects"],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "description": "Optional. Between 1 and 100. Defaults to 15."
+                }
+              ]
+            },
+            "description": "One page of your projects, newest first, each carrying the number of tasks it holds. The page numbers come back in `meta`.\n\n**Responses:** `200` a page of projects · `401` no usable token · `422` `per_page` was rejected."
+          }
+        },
+        {
+          "name": "Create a project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('creates the project', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('project_id', body.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Website Redesign\",\n    \"description\": \"Rebuild the marketing site on the new design system.\",\n    \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects",
+              "host": ["{{base_url}}"],
+              "path": ["projects"]
+            },
+            "description": "The owner is taken from your token and is never read from the body.\n\n`status` is optional and one of `active`, `completed`, `archived`. Leave it out and the project starts `active`.\n\n**Responses:** `201` the created project · `401` no usable token · `422` a field was rejected."
+          }
+        },
+        {
+          "name": "View a project",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}"]
+            },
+            "description": "Change `project_id` to an id you do not own to see the `404`.\n\n**Responses:** `200` the project · `401` no usable token · `404` no such project of yours."
+          }
+        },
+        {
+          "name": "Update a project",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"completed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}"]
+            },
+            "description": "Send only the fields you are changing. `PUT` behaves the same way.\n\nAn empty body is rejected rather than treated as a no-op — send `{}` to see it.\n\n**Responses:** `200` the project as it now stands · `401` no usable token · `404` no such project of yours · `422` a field was rejected."
+          }
+        },
+        {
+          "name": "Delete a project",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}"]
+            },
+            "description": "A soft delete. The project's tasks go with it, out of every list and every dashboard count.\n\n**Responses:** `200` the project is deleted · `401` no usable token · `404` no such project of yours."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "description": "Tasks across every project you own. The project is a filter rather than a path segment, so one call reaches all of them.",
+      "item": [
+        {
+          "name": "List tasks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('returns a page of tasks', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(body.meta).to.have.property('total');",
+                  "});",
+                  "",
+                  "if (body.data.length > 0) {",
+                  "    pm.collectionVariables.set('task_id', body.data[0].id);",
+                  "",
+                  "    // A task always names a project that exists, which is what the",
+                  "    // create request below needs. Taking it from here means running",
+                  "    // the whole collection top to bottom still works after the",
+                  "    // Projects folder has deleted the project it was pointing at.",
+                  "    pm.collectionVariables.set('project_id', body.data[0].project_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/tasks?per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["tasks"],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "description": "Optional. Between 1 and 100. Defaults to 15."
+                },
+                {
+                  "key": "status",
+                  "value": "todo",
+                  "description": "Optional. One of todo, in_progress, done.",
+                  "disabled": true
+                },
+                {
+                  "key": "priority",
+                  "value": "high",
+                  "description": "Optional. One of low, medium, high.",
+                  "disabled": true
+                },
+                {
+                  "key": "project_id",
+                  "value": "{{project_id}}",
+                  "description": "Optional. Must be a project you own.",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "beta",
+                  "description": "Optional. Matches anywhere in the title, ignoring case.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "One page of your tasks, soonest due first.\n\nThe four filters are switched off in the query tab — tick them on to narrow the list. They combine: sending several narrows further rather than widening.\n\nA filter value outside its allowed set rejects the request with `422` rather than being ignored.\n\n**Responses:** `200` a page of tasks (an empty page is still `200`, with a message saying why) · `401` no usable token · `422` a filter was rejected."
+          }
+        },
+        {
+          "name": "List tasks — filtered",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/tasks?status=todo&priority=high&search=beta",
+              "host": ["{{base_url}}"],
+              "path": ["tasks"],
+              "query": [
+                { "key": "status", "value": "todo" },
+                { "key": "priority", "value": "high" },
+                { "key": "search", "value": "beta" }
+              ]
+            },
+            "description": "The same endpoint with three filters applied at once, so you can see them combining without editing anything.\n\nChange `status` to something like `urgent` to see the `422`."
+          }
+        },
+        {
+          "name": "Create a task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('creates the task', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('task_id', body.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"project_id\": {{project_id}},\n    \"title\": \"Ship the beta to TestFlight\",\n    \"description\": \"Internal testers first, then the waiting list.\",\n    \"priority\": \"high\",\n    \"status\": \"todo\",\n    \"due_date\": \"2026-09-30\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tasks",
+              "host": ["{{base_url}}"],
+              "path": ["tasks"]
+            },
+            "description": "`project_id` must be a project you own; another account's id is rejected as an unknown project.\n\n`priority` defaults to `medium` and `status` to `todo` when left out. `due_date` is `YYYY-MM-DD` and may be in the past — that is a legitimate record of work already late.\n\n**Responses:** `201` the created task · `401` no usable token · `422` a field was rejected."
+          }
+        },
+        {
+          "name": "View a task",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/tasks/{{task_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tasks", "{{task_id}}"]
+            },
+            "description": "**Responses:** `200` the task · `401` no usable token · `404` no such task of yours."
+          }
+        },
+        {
+          "name": "Update a task",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"done\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tasks/{{task_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tasks", "{{task_id}}"]
+            },
+            "description": "Send only the fields you are changing. `PUT` behaves the same way.\n\nThe parent project is fixed at creation and cannot be changed here.\n\n**Responses:** `200` the task as it now stands · `401` no usable token · `404` no such task of yours · `422` a field was rejected."
+          }
+        },
+        {
+          "name": "Delete a task",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/tasks/{{task_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tasks", "{{task_id}}"]
+            },
+            "description": "A soft delete. The task leaves every list and every dashboard count; the project it belonged to is untouched.\n\n**Responses:** `200` the task is deleted · `401` no usable token · `404` no such task of yours."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "description": "One read that replaces six list calls.",
+      "item": [
+        {
+          "name": "Read the dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const counts = pm.response.json().data;",
+                  "",
+                  "pm.test('returns six counts', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(Object.keys(counts)).to.have.lengthOf(6);",
+                  "});",
+                  "",
+                  "pm.test('the seeded demo account has no zeroes', function () {",
+                  "    Object.values(counts).forEach((count) => pm.expect(count).to.be.above(0));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["dashboard"]
+            },
+            "description": "Six counts describing everything you own. Takes no input at all — your token is the whole query.\n\n`pending_tasks` and `overdue_tasks` overlap on purpose: an overdue task is still pending.\n\nA brand new account gets six zeroes rather than an empty body. The seeded demo account gets six numbers above zero.\n\n**Responses:** `200` the six counts · `401` no usable token."
+          }
+        }
+      ]
+    }
+  ]
+}

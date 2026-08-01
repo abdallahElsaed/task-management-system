@@ -52,4 +52,12 @@ final readonly class OverdueTaskDigest
         return $this->totalCount - count($this->lines);
     }
 
+    /**
+     * Whether the email has to count tasks it did not name, which is the only
+     * condition under which it carries the "and more" line.
+     */
+    public function hasRemaining(): bool
+    {
+        return $this->remainingCount() > 0;
+    }
 }

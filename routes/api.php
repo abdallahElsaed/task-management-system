@@ -12,15 +12,17 @@ Route::post('login', [AuthController::class, 'login'])
 Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
 
-    Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
-    Route::post('projects', [ProjectController::class, 'store'])->name('projects.store');
-    Route::get('projects/{project}', [ProjectController::class, 'show'])
-        ->whereNumber('project')
-        ->name('projects.show');
-    Route::match(['put', 'patch'], 'projects/{project}', [ProjectController::class, 'update'])
-        ->whereNumber('project')
-        ->name('projects.update');
-    Route::delete('projects/{project}', [ProjectController::class, 'destroy'])
-        ->whereNumber('project')
-        ->name('projects.destroy');
+    Route::prefix('projects')->name('projects.')->group(function (): void {
+        Route::get('/', [ProjectController::class, 'index'])->name('index');
+        Route::post('/', [ProjectController::class, 'store'])->name('store');
+        Route::get('/{project}', [ProjectController::class, 'show'])
+            ->whereNumber('project')
+            ->name('show');
+        Route::match(['put', 'patch'], '/{project}', [ProjectController::class, 'update'])
+            ->whereNumber('project')
+            ->name('update');
+        Route::delete('/{project}', [ProjectController::class, 'destroy'])
+            ->whereNumber('project')
+            ->name('destroy');
+    });
 });

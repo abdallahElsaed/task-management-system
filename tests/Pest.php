@@ -32,6 +32,22 @@ function registrationPayload(array $overrides = []): array
 }
 
 /**
+ * A complete, valid create-project body that individual tests override field by field.
+ *
+ * The status is left out on purpose, so the default path (BR-6) is what most tests exercise.
+ *
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
+function projectPayload(array $overrides = []): array
+{
+    return array_merge([
+        'name' => 'Website Redesign',
+        'description' => 'Q3 marketing site',
+    ], $overrides);
+}
+
+/**
  * Issue a token directly, for tests about what a token does rather than how it is obtained.
  */
 function tokenFor(User $user): string

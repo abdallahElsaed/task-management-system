@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Support;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -50,6 +52,30 @@ final class ApiResponse
     public static function created(mixed $data = null, ?string $message = null, array $meta = []): JsonResponse
     {
         return self::success($data, $message, $meta, Response::HTTP_CREATED);
+    }
+
+    /**
+     * Wrap one page of a resource collection, so every list endpoint carries the
+     * same pagination meta whatever it returns.
+     *
+     * A resource collection resolves to its items alone, so the page numbers are
+     * read from the paginator behind it rather than from the collection.
+     */
+    public static function paginated(ResourceCollection $collection, ?string $message = null): JsonResponse
+    {
+        /** @var LengthAwarePaginator<int, mixed> $page */
+        $page = $collection->resource;
+
+        return self::success(
+            data: $collection->resolve(),
+            message: $message,
+            meta: [
+                'current_page' => $page->currentPage(),
+                'per_page' => $page->perPage(),
+                'total' => $page->total(),
+                'last_page' => $page->lastPage(),
+            ],
+        );
     }
 
     /**

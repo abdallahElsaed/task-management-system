@@ -36,11 +36,19 @@ final readonly class OverdueNotificationService
     }
 
     /**
-     * Marking comes before queueing, and both land together or neither does. That
-     * order is what BR-5 and EC-13 rest on: from the moment the sweep claims these
-     * tasks no later run can find them, so a second run the same day — or a manual
-     * one — has nothing to send. A queue that refuses the job rolls the claim back
-     * with it, leaving the tasks for the next sweep rather than losing the email.
+     * Marking comes before queueing, and both land together or neither does. From
+     * the moment the sweep claims these tasks no later run can find them, so a
+     * second run the same day — or a manual one — has nothing to send.
+     *
+     * The job is pushed before the commit on purpose. Inside the transaction, a
+     * queue that refuses it rolls the claim back and leaves the tasks for the next
+     * sweep; held until after the commit, the same refusal would arrive once the
+     * claim was permanent and the email would be lost for good.
+     *
+     * On the `database` queue the job row commits with the claim, so the two cannot
+     * come apart. Any other driver takes the job before the commit does, so a commit
+     * that fails after a successful push leaves a job for tasks that stay unclaimed,
+     * and the next sweep names them again: a duplicate, never a lost email.
      *
      * The tasks are re-read here rather than carried over from the query that
      * named the account, because the digest needs the titles and the claim needs
@@ -61,7 +69,7 @@ final readonly class OverdueNotificationService
         DB::transaction(function () use ($ownerId, $taskIds, $digest): void {
             $this->tasks->markAsReported($taskIds);
 
-            SendOverdueTasksDigest::dispatch($ownerId, $taskIds, $digest)->afterCommit();
+            SendOverdueTasksDigest::dispatch($ownerId, $taskIds, $digest)->beforeCommit();
         });
 
         return true;

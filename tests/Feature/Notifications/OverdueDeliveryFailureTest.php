@@ -4,9 +4,12 @@ use App\Jobs\Notifications\SendOverdueTasksDigest;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Schema;
 
 /*
  * US-4. Delivery is the queue's problem, never a caller's, and a digest that
@@ -93,6 +96,46 @@ it('records a failure the account can be identified from', function () {
             && $context['task_count'] === 2
             && $context['exception'] === 'Connection refused',
     );
+});
+
+/*
+ * A queue that cannot take the job must not cost the email. The `jobs` table
+ * disappearing is a real failure on the real driver, and `after_commit` covers a
+ * connection configured to hold jobs back until the transaction has committed.
+ */
+it('keeps the tasks for the next sweep when the queue refuses the digest', function (bool $heldUntilCommit) {
+    config([
+        'queue.default' => 'database',
+        'queue.connections.database.after_commit' => $heldUntilCommit,
+    ]);
+
+    Task::factory()->count(2)->for($this->project)->create(['due_date' => '2026-07-30']);
+
+    Schema::rename('jobs', 'jobs_offline');
+
+    expect(fn () => $this->artisan('tasks:notify-overdue')->run())->toThrow(QueryException::class);
+    expect(Task::unreported()->count())->toBe(2);
+
+    Schema::rename('jobs_offline', 'jobs');
+
+    $this->artisan('tasks:notify-overdue')->assertSuccessful();
+
+    expect(DB::table('jobs')->count())->toBe(1);
+    expect(Task::unreported()->count())->toBe(0);
+})->with([
+    'pushed straight away' => false,
+    'held until commit' => true,
+]);
+
+it('leaves the tasks unreported when the sync queue fails to send inline', function () {
+    Mail::shouldReceive('to')->andThrow(new RuntimeException('Connection refused'));
+
+    Task::factory()->count(2)->for($this->project)->create(['due_date' => '2026-07-30']);
+
+    expect(fn () => $this->artisan('tasks:notify-overdue')->run())
+        ->toThrow(RuntimeException::class, 'Connection refused');
+
+    expect(Task::unreported()->count())->toBe(2);
 });
 
 /**

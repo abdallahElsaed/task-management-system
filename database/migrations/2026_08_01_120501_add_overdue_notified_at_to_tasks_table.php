@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('tasks', function (Blueprint $table){
+        Schema::table('tasks', function (Blueprint $table) {
             $table->timestamp('overdue_notified_at')->nullable();
             $table->index(['overdue_notified_at', 'due_date'], 'tasks_overdue_sweep_index');
         });

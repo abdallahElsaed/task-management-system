@@ -80,3 +80,41 @@ it('stores the email lower-cased', function () {
 
     expect(User::sole()->email)->toBe('sara@mail.com');
 });
+
+it('refuses an eleventh registration from the same caller inside the window', function () {
+    foreach (range(1, 10) as $attempt) {
+        $this->postJson(route('auth.register'), registrationPayload(['email' => "sara{$attempt}@mail.com"]))
+            ->assertCreated();
+    }
+
+    $response = $this->postJson(route('auth.register'), registrationPayload(['email' => 'late@mail.com']));
+
+    $response->assertTooManyRequests()
+        ->assertJsonPath('success', false)
+        ->assertHeader('Retry-After');
+
+    expect($response->json('message'))
+        ->toMatch('/^Too many registration attempts\. Please try again in \d+ seconds\.$/');
+
+    expect(User::count())->toBe(10);
+});
+
+it('counts a rejected registration against the limit', function () {
+    foreach (range(1, 10) as $ignored) {
+        $this->postJson(route('auth.register'), registrationPayload(['email' => 'not-an-email']))
+            ->assertUnprocessable();
+    }
+
+    $this->postJson(route('auth.register'), registrationPayload())->assertTooManyRequests();
+});
+
+it('keeps one caller\'s attempts from spending another caller\'s limit', function () {
+    foreach (range(1, 10) as $attempt) {
+        $this->postJson(route('auth.register'), registrationPayload(['email' => "sara{$attempt}@mail.com"]))
+            ->assertCreated();
+    }
+
+    $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.9'])
+        ->postJson(route('auth.register'), registrationPayload(['email' => 'other@mail.com']))
+        ->assertCreated();
+});

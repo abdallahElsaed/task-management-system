@@ -47,8 +47,8 @@ final readonly class TaskRepository implements TaskRepositoryInterface
     /**
      * `ownedBy` carries the soft-delete rule for the task and for its project, so
      * a deleted project takes its tasks out of every count in the same moment.
-     * The owner's tasks are selected once and the four numbers are
-     * counted off that one pass by `selectStatusCounts`, which holds the SQL for.
+     * The owner's tasks are selected once and the four numbers are counted off
+     * that one pass by `selectStatusCounts`, which holds the SQL for them.
      *
      * An aggregate with no `group by` always answers with exactly one row, so the
      * counts are read straight off it.
@@ -176,7 +176,7 @@ final readonly class TaskRepository implements TaskRepositoryInterface
     }
 
     /**
-     *  run once when the feature is switched on. It reuses `overdue`
+     * The backfill, run once when the feature is switched on. It reuses `overdue`
      * so the tasks it silences are exactly the ones the sweep would have emailed.
      */
     public function markAllOverdueAsReported(): int
@@ -186,7 +186,7 @@ final readonly class TaskRepository implements TaskRepositoryInterface
 
     /**
      * Written through the base builder so that `updated_at` stays where it is:
-     * being named in an email is not an edit the account holder made, and
+     * being named in an email is not an edit the account holder made, and the
      * task payload reports that timestamp.
      *
      * @param  list<int>  $taskIds

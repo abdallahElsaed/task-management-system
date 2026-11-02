@@ -129,7 +129,7 @@ class Task extends Model
     }
 
     /**
-     * Never named in an overdue email, which is the condition adds on
+     * Never named in an overdue email, which is the condition the sweep adds on
      * top of `overdue`. Reporting is permanent, so this narrows by itself over
      * time and never widens again.
      *

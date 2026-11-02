@@ -16,6 +16,14 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class OverdueNotificationService
 {
+    /**
+     * How many times one account's claim may run. Two sweeps, or a sweep and an edit
+     * to the same task, can deadlock over these rows. The database abandons one of
+     * them and rolls it back, so running it again is safe, and without that a sweep
+     * would stop there and leave its remaining accounts for the next run.
+     */
+    private const int CLAIM_ATTEMPTS = 3;
+
     public function __construct(private TaskRepositoryInterface $tasks) {}
 
     /**
@@ -50,28 +58,30 @@ final readonly class OverdueNotificationService
      * that fails after a successful push leaves a job for tasks that stay unclaimed,
      * and the next sweep names them again: a duplicate, never a lost email.
      *
-     * The tasks are re-read here rather than carried over from the query that
-     * named the account, because the digest needs the titles and the claim needs
-     * every id, and only one of those is worth reading for accounts that turn out
-     * to have nothing.
+     * The tasks are read inside the transaction, under a lock, so the check and the
+     * claim are one step. Two sweeps can reach an account at once, because
+     * `withoutOverlapping` only keeps scheduled runs apart: the first holds the rows
+     * until it commits, and the second then finds nothing left to claim.
+     *
+     * Every id the digest reports comes from that same read, which is what lets the
+     * job release exactly those tasks if delivery fails for good.
      */
     private function queueDigestFor(int $ownerId): bool
     {
-        $tasks = $this->tasks->unreportedOverdueForOwner($ownerId);
+        return DB::transaction(function () use ($ownerId): bool {
+            $tasks = $this->tasks->lockUnreportedOverdueForOwner($ownerId);
 
-        if ($tasks->isEmpty()) {
-            return false;
-        }
+            if ($tasks->isEmpty()) {
+                return false;
+            }
 
-        $taskIds = $tasks->modelKeys();
-        $digest = OverdueTaskDigest::fromTasks($tasks);
+            $taskIds = $tasks->modelKeys();
 
-        DB::transaction(function () use ($ownerId, $taskIds, $digest): void {
             $this->tasks->markAsReported($taskIds);
 
-            SendOverdueTasksDigest::dispatch($ownerId, $taskIds, $digest)->beforeCommit();
-        });
+            SendOverdueTasksDigest::dispatch($ownerId, $taskIds, OverdueTaskDigest::fromTasks($tasks))->beforeCommit();
 
-        return true;
+            return true;
+        }, self::CLAIM_ATTEMPTS);
     }
 }

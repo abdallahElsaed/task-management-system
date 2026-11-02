@@ -139,15 +139,20 @@ final readonly class TaskRepository implements TaskRepositoryInterface
      * `dueSoonestFirst` is the longest-overdue-first order read the other way
      * round: the oldest due date is the one that has been late longest.
      *
+     * The rows stay locked until the caller's transaction ends. A locking read sees
+     * the latest committed rows rather than a snapshot, so a second sweep waits here
+     * and then finds the tasks already reported instead of claiming them again.
+     *
      * @return Collection<int, Task>
      */
-    public function unreportedOverdueForOwner(int $ownerId): Collection
+    public function lockUnreportedOverdueForOwner(int $ownerId): Collection
     {
         return Task::ownedBy($ownerId)
             ->overdue()
             ->unreported()
             ->with('project:id,name')
             ->dueSoonestFirst()
+            ->lockForUpdate()
             ->get(['id', 'project_id', 'title', 'due_date']);
     }
 

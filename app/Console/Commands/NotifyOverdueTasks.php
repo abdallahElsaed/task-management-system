@@ -14,8 +14,8 @@ use Illuminate\Console\Command;
  * what went late and the queue delivers it, which is what keeps a command that
  * runs unattended down to something that can be read in one go.
  *
- * Safe to run by hand at any time — a second run the same day finds nothing left
- * to report and sends nothing (EC-13).
+ * Safe to run by hand at any time, even while another run is in progress: a second
+ * run finds nothing left to report and sends nothing.
  */
 #[Signature('tasks:notify-overdue')]
 #[Description('Email each account holder the tasks of theirs that have passed their due date (FT-005).')]

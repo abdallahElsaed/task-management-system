@@ -12,9 +12,9 @@ Artisan::command('inspire', function () {
 /*
  * FT-005 BR-1: once a day at 08:00, in the timezone `config('app.timezone')` sets.
  *
- * `withoutOverlapping` guards against a sweep that is still running when the next
- * one is due; a run that starts after one has finished is harmless either way,
- * because reported tasks are never found twice (BR-5, EC-13).
+ * `withoutOverlapping` only stops a scheduled run starting on top of another
+ * scheduled run. It knows nothing about a sweep started by hand, so it is not what
+ * keeps a task out of two emails: the row locks in the sweep's claim do that.
  */
 Schedule::command(NotifyOverdueTasks::class)
     ->dailyAt(NotifyOverdueTasks::DAILY_RUN_TIME)

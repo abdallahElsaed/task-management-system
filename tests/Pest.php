@@ -9,6 +9,8 @@ pest()->extend(TestCase::class)
     ->beforeEach(fn () => cache()->flush())
     ->in('Feature');
 
+pest()->extend(TestCase::class)->in('Concurrency');
+
 /*
 |--------------------------------------------------------------------------
 | Helpers

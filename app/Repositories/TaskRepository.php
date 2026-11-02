@@ -133,6 +133,19 @@ final readonly class TaskRepository implements TaskRepositoryInterface
     }
 
     /**
+     * A plain read, so that finding an account's tasks locks nothing. How this query
+     * walks the table depends on the data, and a locking read locks everything it
+     * walks past, which can include other accounts' tasks. `lockUnreportedOverdue`
+     * takes the ids it finds and reaches them by key instead.
+     *
+     * @return list<int>
+     */
+    public function unreportedOverdueIdsForOwner(int $ownerId): array
+    {
+        return Task::ownedBy($ownerId)->overdue()->unreported()->pluck('id')->all();
+    }
+
+    /**
      * Only the four columns the email is built from are read, because an account
      * that has let a hundred tasks go late still has to fit in one message.
      *
@@ -142,12 +155,14 @@ final readonly class TaskRepository implements TaskRepositoryInterface
      * The rows stay locked until the caller's transaction ends. A locking read sees
      * the latest committed rows rather than a snapshot, so a second sweep waits here
      * and then finds the tasks already reported instead of claiming them again.
+     * Reaching them by key means these rows are the only ones locked.
      *
+     * @param  list<int>  $taskIds
      * @return Collection<int, Task>
      */
-    public function lockUnreportedOverdueForOwner(int $ownerId): Collection
+    public function lockUnreportedOverdue(array $taskIds): Collection
     {
-        return Task::ownedBy($ownerId)
+        return Task::whereKey($taskIds)
             ->overdue()
             ->unreported()
             ->with('project:id,name')
@@ -176,8 +191,9 @@ final readonly class TaskRepository implements TaskRepositoryInterface
     }
 
     /**
-     * The backfill, run once when the feature is switched on. It reuses `overdue`
-     * so the tasks it silences are exactly the ones the sweep would have emailed.
+     * A backfill for switching the sweep on over existing data, so that the first run
+     * does not email a backlog. No migration calls it yet. It reuses `overdue` so the
+     * tasks it silences are exactly the ones the sweep would have emailed.
      */
     public function markAllOverdueAsReported(): int
     {

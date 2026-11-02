@@ -53,23 +53,32 @@ final readonly class OverdueNotificationService
      * sweep; held until after the commit, the same refusal would arrive once the
      * claim was permanent and the email would be lost for good.
      *
-     * On the `database` queue the job row commits with the claim, so the two cannot
-     * come apart. Any other driver takes the job before the commit does, so a commit
-     * that fails after a successful push leaves a job for tasks that stay unclaimed,
-     * and the next sweep names them again: a duplicate, never a lost email.
+     * On the `database` queue, on the default connection, the job row commits with
+     * the claim, so the two cannot come apart. `redis`, `sqs` and `beanstalkd` take the
+     * job before the commit does, so a commit that fails after a successful push
+     * leaves a job for tasks that stay unclaimed, and the next sweep names them again:
+     * a duplicate, never a lost email. `deferred`, `background` and `failover` do not
+     * have that property, so the README warns against them.
      *
-     * The tasks are read inside the transaction, under a lock, so the check and the
-     * claim are one step. Two sweeps can reach an account at once, because
+     * This is a deliberate exception to keeping external calls out of a transaction,
+     * and it costs nothing on `database`. On `sqs` the push is an HTTP call, and on
+     * `sync` the email itself is sent, so the transaction waits on that call.
+     *
+     * The ids are found first, without a lock, and only those rows are then read under
+     * one, so the check and the claim are one step and a claim holds no other
+     * account's tasks. Two sweeps can reach an account at once, because
      * `withoutOverlapping` only keeps scheduled runs apart: the first holds the rows
      * until it commits, and the second then finds nothing left to claim.
      *
-     * Every id the digest reports comes from that same read, which is what lets the
+     * Every id the digest reports comes from that locked read, which is what lets the
      * job release exactly those tasks if delivery fails for good.
      */
     private function queueDigestFor(int $ownerId): bool
     {
-        return DB::transaction(function () use ($ownerId): bool {
-            $tasks = $this->tasks->lockUnreportedOverdueForOwner($ownerId);
+        $candidateIds = $this->tasks->unreportedOverdueIdsForOwner($ownerId);
+
+        return DB::transaction(function () use ($ownerId, $candidateIds): bool {
+            $tasks = $this->tasks->lockUnreportedOverdue($candidateIds);
 
             if ($tasks->isEmpty()) {
                 return false;

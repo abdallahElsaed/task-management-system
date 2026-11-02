@@ -1,5 +1,6 @@
 <?php
 
+use App\Contracts\Repositories\TaskRepositoryInterface;
 use App\Jobs\Notifications\SendOverdueTasksDigest;
 use App\Models\Project;
 use App\Models\Task;
@@ -49,9 +50,11 @@ it('queues each task exactly once however many sweeps race for it', function () 
 
     $sweeps = collect(range(1, CONCURRENT_SWEEPS))->map(fn () => startSweep());
 
-    waitUntilBlocked($sweeps);
-
-    DB::commit();
+    try {
+        waitUntilBlocked($sweeps);
+    } finally {
+        DB::commit();
+    }
 
     $sweeps->each(fn (InvokedProcess $sweep) => expect($sweep->wait()->exitCode())->toBe(0));
 
@@ -84,6 +87,31 @@ it('runs the claim again when the database abandons it to break a deadlock', fun
     expect($deadlocked)->toBeTrue();
     expect(queuedDigests())->toHaveCount(1);
     expect(Task::unreported()->count())->toBe(0);
+});
+
+it('locks the tasks being claimed and nothing else', function () {
+    $owner = User::factory()->create();
+
+    createOverdueTasksFor($owner);
+    createOverdueTasksFor(User::factory()->create());
+
+    $tasks = app(TaskRepositoryInterface::class);
+    $claimedIds = $tasks->unreportedOverdueIdsForOwner($owner->id);
+
+    DB::transaction(function () use ($tasks, $claimedIds): void {
+        $tasks->lockUnreportedOverdue($claimedIds);
+
+        $rowLocks = DB::table('performance_schema.data_locks')
+            ->where('OBJECT_SCHEMA', DB::connection()->getDatabaseName())
+            ->where('OBJECT_NAME', 'tasks')
+            ->where('LOCK_TYPE', 'RECORD')
+            ->get();
+
+        expect($rowLocks->pluck('INDEX_NAME')->unique()->all())->toBe(['PRIMARY']);
+        expect($rowLocks->pluck('LOCK_MODE')->unique()->all())->toBe(['X,REC_NOT_GAP']);
+        expect($rowLocks->pluck('LOCK_DATA')->map(fn (string $id) => (int) $id)->sort()->values()->all())
+            ->toBe(collect($claimedIds)->sort()->values()->all());
+    });
 });
 
 function createOverdueTasksFor(User $owner): void

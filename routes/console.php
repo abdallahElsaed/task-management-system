@@ -10,7 +10,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 /*
- * FT-005 BR-1: once a day at 08:00, in the timezone `config('app.timezone')` sets.
+ * Once a day at 08:00, in the timezone `config('app.timezone')` sets.
  *
  * `withoutOverlapping` only stops a scheduled run starting on top of another
  * scheduled run. It knows nothing about a sweep started by hand, so it is not what

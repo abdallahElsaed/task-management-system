@@ -12,7 +12,7 @@ use Exception;
  * the reason: it belongs to another account, it never existed, or it was deleted.
  *
  * The answer is deliberately identical in all three cases, so no response ever
- * reveals that a project exists (D-1, BR-2, EC-2, EC-3, EC-11).
+ * reveals that a project exists.
  */
 final class ProjectNotFoundException extends Exception
 {

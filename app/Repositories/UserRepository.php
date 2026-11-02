@@ -24,7 +24,7 @@ final readonly class UserRepository implements UserRepositoryInterface
 
     /**
      * The queued overdue digest carries an id rather than a serialized account, so
-     * it reads the current name and address at the moment it sends (FT-005 BR-7).
+     * it reads the current name and address at the moment it sends.
      */
     public function find(int $userId): ?User
     {

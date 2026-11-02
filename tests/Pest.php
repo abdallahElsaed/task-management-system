@@ -36,7 +36,7 @@ function registrationPayload(array $overrides = []): array
 /**
  * A complete, valid create-project body that individual tests override field by field.
  *
- * The status is left out on purpose, so the default path (BR-6) is what most tests exercise.
+ * The status is left out on purpose, so the default path is what most tests exercise.
  *
  * @param  array<string, mixed>  $overrides
  * @return array<string, mixed>
@@ -52,8 +52,8 @@ function projectPayload(array $overrides = []): array
 /**
  * A complete, valid create-task body that individual tests override field by field.
  *
- * The caller supplies the project id, because a task always belongs to one (BR-1).
- * Priority and status are left out on purpose, so the default path (BR-7, BR-8) is
+ * The caller supplies the project id, because a task always belongs to one.
+ * Priority and status are left out on purpose, so the default path is
  * what most tests exercise.
  *
  * @param  array<string, mixed>  $overrides

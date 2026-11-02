@@ -22,8 +22,8 @@ final class IndexProjectsRequest extends FormRequest
     }
 
     /**
-     * Only the page size is constrained (BR-12). A page number past the last page
-     * answers with an empty page and the correct total, which is what EC-9 asks for.
+     * Only the page size is constrained. A page number past the last page
+     * answers with an empty page and the correct total.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */

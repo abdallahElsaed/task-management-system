@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Enums\Tasks;
 
 /**
- * The three priorities a task carries (FT-003 BR-7).
+ * The three priorities a task carries.
  */
 enum TaskPriority: string
 {

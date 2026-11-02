@@ -51,7 +51,7 @@ class TaskFactory extends Factory
     }
 
     /**
-     * A due date already past, with a status that still counts as outstanding (BR-12).
+     * A due date already past, with a status that still counts as outstanding.
      */
     public function overdue(): static
     {

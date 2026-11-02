@@ -10,10 +10,10 @@ use App\Enums\Tasks\TaskStatus;
 /**
  * The four narrowing terms the task list accepts, already validated and normalised
  * by IndexTasksRequest. Every one is nullable, and null means "not filtering on
- * this", which is what lets the repository compose them with AND (BR-17).
+ * this", which is what lets the repository compose them with AND.
  *
  * A search term that trimmed to nothing arrives here as null rather than as an
- * empty string, so it is an absent filter rather than an active one (EC-10).
+ * empty string, so it is an absent filter rather than an active one.
  */
 final readonly class TaskFilters
 {
@@ -27,7 +27,7 @@ final readonly class TaskFilters
     /**
      * Whether the caller narrowed the list at all. This is what separates the two
      * empty states from one another: an unfiltered empty page means the account
-     * holds no tasks, a filtered one means nothing matched (EC-1, EC-2).
+     * holds no tasks, a filtered one means nothing matched.
      */
     public function isActive(): bool
     {

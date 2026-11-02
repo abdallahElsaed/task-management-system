@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * The owner is deliberately absent from the fillable list: ownership is fixed at
- * creation and is never accepted from a request body (BR-1, EC-7).
+ * creation and is never accepted from a request body.
  */
 #[Fillable(['name', 'description', 'status'])]
 class Project extends Model
@@ -49,7 +49,7 @@ class Project extends Model
 
     /**
      * Owner-scoping every read is what makes another account's project
-     * indistinguishable from one that never existed (BR-2, D-1).
+     * indistinguishable from one that never existed.
      *
      * @param  Builder<$this>  $query
      */
@@ -60,7 +60,7 @@ class Project extends Model
     }
 
     /**
-     * BR-11. The id breaks ties because `created_at` holds no fractional seconds,
+     * The id breaks ties because `created_at` holds no fractional seconds,
      * so two projects created inside the same second would otherwise come back
      * in an arbitrary order.
      *

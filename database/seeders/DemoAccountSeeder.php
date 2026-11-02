@@ -15,10 +15,10 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * The account a reviewer logs in as, and the dataset behind it (BR-6, BR-7).
+ * The account a reviewer logs in as, and the dataset behind it.
  *
  * The dataset is written out row by row rather than generated at random, because
- * BR-7 states it by exact counts: 4 projects covering all three statuses, and 25
+ * its counts are exact: 4 projects covering all three statuses, and 25
  * tasks covering all three priorities and all three statuses, of which at least 3
  * are overdue and at least 5 are done. A fixed table is the only way those numbers
  * hold on every run, and it is also the only way a reviewer can read the seeder and
@@ -32,7 +32,7 @@ class DemoAccountSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Published in the README, so a reviewer never has to register first (BR-6, D-4).
+     * Published in the README, so a reviewer never has to register first.
      */
     public const string EMAIL = 'demo@example.com';
 
@@ -55,7 +55,7 @@ class DemoAccountSeeder extends Seeder
 
     /**
      * The account is updated rather than recreated, so the published password keeps
-     * working whatever else a second run rebuilds (BR-8, EC-4).
+     * working whatever else a second run rebuilds.
      */
     private function account(): User
     {
@@ -67,7 +67,7 @@ class DemoAccountSeeder extends Seeder
 
     /**
      * A second run rebuilds the dataset instead of adding to it, which is what keeps
-     * the counts in BR-7 exact however many times the seeder is called. The rows go
+     * its counts exact however many times the seeder is called. The rows go
      * for good rather than into the soft-deleted state, so nothing is left behind
      * for a query that reads trashed records to find.
      */
@@ -112,12 +112,12 @@ class DemoAccountSeeder extends Seeder
     /**
      * 4 projects and 25 tasks.
      *
-     * What the table adds up to, so a change to it can be read against BR-7:
+     * What the table adds up to, so a change to it can be checked at a glance:
      * projects — 2 active, 1 completed, 1 archived; tasks — 9 done, 5 in progress
      * and 11 todo, of which 5 are overdue; priorities — 9 high, 9 medium, 7 low.
      *
-     * Several titles are written in Arabic, so FT-003's search and the digest email
-     * can both be checked against a non-Latin script by hand (⚠️ A-3).
+     * Several titles are written in Arabic, so the task search and the digest email
+     * can both be checked against a non-Latin script by hand.
      *
      * @return list<array{name: string, description: string, status: ProjectStatus, tasks: list<array{title: string, description: string, priority: TaskPriority, status: TaskStatus, due_in_days: int}>}>
      */

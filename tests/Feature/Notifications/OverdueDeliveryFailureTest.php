@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 
 /*
- * US-4. Delivery is the queue's problem, never a caller's, and a digest that
+ * Delivery is the queue's problem, never a caller's, and a digest that
  * never got through leaves its tasks for tomorrow rather than losing them.
  */
 beforeEach(function () {

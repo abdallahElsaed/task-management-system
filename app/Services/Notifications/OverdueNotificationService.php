@@ -10,7 +10,7 @@ use App\Jobs\Notifications\SendOverdueTasksDigest;
 use Illuminate\Support\Facades\DB;
 
 /**
- * FT-005's daily sweep. It finds the tasks that went late without being finished,
+ * The daily overdue sweep. It finds the tasks that went late without being finished,
  * claims them, and hands one digest per account to the queue — it never sends
  * anything itself, so the scheduled command finishes in the time the queries take.
  */
@@ -28,7 +28,7 @@ final readonly class OverdueNotificationService
 
     /**
      * Only the accounts that owe an email are visited, so an account with nothing
-     * newly overdue is never considered and cannot be sent an all-clear (BR-3).
+     * newly overdue is never considered and cannot be sent an all-clear.
      *
      * @return int the number of accounts a digest was queued for
      */

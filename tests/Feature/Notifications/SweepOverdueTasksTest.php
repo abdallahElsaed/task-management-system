@@ -7,8 +7,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 
 /*
- * FT-005's acceptance criteria are written against 2026-07-31, so the clock is
- * frozen on their "today" rather than the day the suite runs.
+ * The dates below are written against 2026-07-31, so the clock is frozen on that
+ * day rather than the day the suite runs.
  */
 beforeEach(function () {
     $this->travelTo('2026-07-31');
@@ -32,7 +32,7 @@ it('emails the owner of a task that passed its due date unfinished', function ()
     );
 });
 
-it('names the task, its project and its due date the way BR-8 writes them', function () {
+it('names the task, its project and its due date on one line', function () {
     Task::factory()->for($this->project)->create([
         'title' => 'Fix login bug',
         'due_date' => '2026-07-30',

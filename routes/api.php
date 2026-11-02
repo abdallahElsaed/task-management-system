@@ -33,7 +33,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
     });
 
     // The list spans every project the caller owns, with the project as an
-    // optional filter rather than a path segment (FT-003 D-5).
+    // optional filter rather than a path segment.
     Route::prefix('tasks')->name('tasks.')->group(function (): void {
         Route::get('/', [TaskController::class, 'index'])->name('index');
         Route::post('/', [TaskController::class, 'store'])->name('store');

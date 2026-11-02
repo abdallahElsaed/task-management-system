@@ -12,7 +12,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * A second account holding data of its own, so the ownership rule (FT-002 BR-2) can
+ * A second account holding data of its own, so the ownership rule can
  * be checked by hand: log in as the demo account, ask for one of this account's
  * project ids, and the answer is a 404 rather than the record.
  *
@@ -57,7 +57,7 @@ class SecondaryAccountSeeder extends Seeder
 
     /**
      * A second run rebuilds rather than accumulates, for the same reason the demo
-     * account's does (BR-8).
+     * account's does.
      */
     private function clearPreviousData(User $owner): void
     {

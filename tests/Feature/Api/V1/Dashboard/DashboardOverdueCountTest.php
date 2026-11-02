@@ -5,8 +5,7 @@ use App\Models\Task;
 use App\Models\User;
 
 /*
- * Every date below is written the way FT-004's acceptance criteria write them,
- * so the clock is frozen on their "today" rather than the day the suite runs.
+ * Every date below is fixed, so the clock is frozen on one "today" rather than the day the suite runs.
  */
 beforeEach(function () {
     $this->travelTo('2026-07-31');

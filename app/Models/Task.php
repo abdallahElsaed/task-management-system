@@ -79,9 +79,9 @@ class Task extends Model
     }
 
     /**
-     * Pending is Todo and In Progress together (FT-004 Metric Definitions, D-1).
+     * Pending is Todo and In Progress together.
      * An overdue task is pending as well: the two counts overlap rather than
-     * divide the work between them (FT-004 BR-3).
+     * divide the work between them.
      *
      * @param  Builder<$this>  $query
      */

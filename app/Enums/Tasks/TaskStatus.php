@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Enums\Tasks;
 
 /**
- * The three workflow states a task moves between (FT-003 BR-8).
+ * The three workflow states a task moves between.
  */
 enum TaskStatus: string
 {

@@ -35,13 +35,13 @@ final class UpdateTaskRequest extends FormRequest
 
     /**
      * Every field is optional, but a field that is present must still be valid, so
-     * a title of "   " is rejected rather than blanking the stored title (AC-2.6).
+     * a title of "   " is rejected rather than blanking the stored title.
      *
      * `project_id` carries no rule at all, so it is dropped from the validated data
-     * and an update naming another project leaves the task where it is (BR-2, EC-15).
+     * and an update naming another project leaves the task where it is.
      *
      * A status moves between any two values in either direction — nothing here
-     * restricts which value may follow which (BR-9).
+     * restricts which value may follow which.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -77,7 +77,7 @@ final class UpdateTaskRequest extends FormRequest
 
     /**
      * An update naming no editable field is a mistake rather than a no-op, so it is
-     * rejected and the task is left untouched (EC-19). The error is keyed on the
+     * rejected and the task is left untouched. The error is keyed on the
      * resource, not on a field the caller never sent.
      *
      * @return array<int, callable>
@@ -97,7 +97,7 @@ final class UpdateTaskRequest extends FormRequest
 
     /**
      * Trim the title so a whitespace-only value is rejected as blank rather than
-     * stored as blank (BR-5), and lower-case the two choices so that `High` and
+     * stored as blank, and lower-case the two choices so that `High` and
      * `high` name the same value.
      */
     protected function prepareForValidation(): void

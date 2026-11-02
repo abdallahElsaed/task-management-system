@@ -1,4 +1,4 @@
--- Task Management System — seeded database dump (FT-006 BR-4)
+-- Task Management System — seeded database dump
 --
 -- The same schema the migrations build, plus the dataset DatabaseSeeder creates:
 -- the demo account (demo@example.com / password123), a second account, 5 projects
@@ -9,7 +9,7 @@
 --
 -- The database itself is not created here, so the name above is yours to choose.
 -- Passwords are stored as bcrypt hashes of the published demo password; no real
--- credential and no real email address appears in this file (BR-17).
+-- credential and no real email address appears in this file.
 
 -- MySQL dump 10.13  Distrib 9.5.0, for macos26.1 (arm64)
 --

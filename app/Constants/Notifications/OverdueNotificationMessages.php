@@ -7,7 +7,7 @@ namespace App\Constants\Notifications;
 use App\DTOs\Notifications\OverdueTaskLine;
 
 /**
- * One constant per row of FT-005's Content & Microcopy table, so every word the
+ * One constant per message, so every word the
  * overdue email can carry is auditable in one place and a wording change is a
  * single edit.
  *
@@ -21,7 +21,7 @@ final class OverdueNotificationMessages
     public const string FOOTER = 'This message was sent automatically. Replies to it are not read.';
 
     /**
-     * `15 Aug 2026`, the way BR-8 writes a due date.
+     * `15 Aug 2026`, the way the email writes a due date.
      */
     public const string DUE_DATE_FORMAT = 'j M Y';
 
@@ -40,7 +40,7 @@ final class OverdueNotificationMessages
     /**
      * The count is every task that went late rather than the number of lines under
      * it, so an account with 80 newly overdue tasks reads 80 in the subject and 50
-     * lines in the body (BR-4).
+     * lines in the body.
      */
     public static function subject(int $count): string
     {
@@ -55,7 +55,7 @@ final class OverdueNotificationMessages
     }
 
     /**
-     * BR-8: a task is named by its title, its project's name and its due date.
+     * A task is named by its title, its project's name and its due date.
      */
     public static function line(OverdueTaskLine $task): string
     {

@@ -32,7 +32,7 @@ final class UpdateProjectRequest extends FormRequest
 
     /**
      * Every field is optional, but a field that is present must still be valid,
-     * so a name of "   " is rejected rather than blanking the stored name (EC-4).
+     * so a name of "   " is rejected rather than blanking the stored name.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -63,7 +63,7 @@ final class UpdateProjectRequest extends FormRequest
 
     /**
      * An update naming no editable field is a mistake rather than a no-op, so it
-     * is rejected and the project is left untouched (EC-13). The error is keyed
+     * is rejected and the project is left untouched. The error is keyed
      * on the resource, not on a field the caller never sent.
      *
      * @return array<int, callable>
@@ -83,8 +83,8 @@ final class UpdateProjectRequest extends FormRequest
 
     /**
      * Trim the name so a whitespace-only value is rejected as blank rather than
-     * stored as blank (BR-3, EC-4), and lower-case the status so that `Active`
-     * and `active` name the same choice (EC-5).
+     * stored as blank, and lower-case the status so that `Active`
+     * and `active` name the same choice.
      */
     protected function prepareForValidation(): void
     {

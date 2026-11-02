@@ -31,11 +31,11 @@ final class StoreTaskRequest extends FormRequest
     /**
      * The project rule is scoped to the caller and excludes deleted projects, so
      * naming another account's project is answered exactly as if that project did
-     * not exist (BR-3, EC-4). `Rule::exists` runs a raw query, so the soft-delete
+     * not exist. `Rule::exists` runs a raw query, so the soft-delete
      * condition has to be spelled out.
      *
      * There is deliberately no rule holding the due date at or after today: a date
-     * in the past is a legitimate record of work already late (BR-11, D-2).
+     * in the past is a legitimate record of work already late.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -60,7 +60,7 @@ final class StoreTaskRequest extends FormRequest
     /**
      * Every way of naming an unreachable project answers with the same sentence,
      * so a missing id, a non-numeric id and another account's id are
-     * indistinguishable from one another (BR-3).
+     * indistinguishable from one another.
      *
      * @return array<string, string>
      */
@@ -83,7 +83,7 @@ final class StoreTaskRequest extends FormRequest
 
     /**
      * Trim the title so a whitespace-only value is rejected as blank rather than
-     * stored as blank (BR-5), and lower-case the two choices so that `High` and
+     * stored as blank, and lower-case the two choices so that `High` and
      * `high` name the same value.
      */
     protected function prepareForValidation(): void

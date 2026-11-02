@@ -13,7 +13,7 @@ use Exception;
  * deleted, or its parent project was deleted.
  *
  * The answer is deliberately identical in every case, so no response ever reveals
- * that a task exists (BR-4, EC-3, EC-14, EC-20).
+ * that a task exists.
  */
 final class TaskNotFoundException extends Exception
 {

@@ -29,7 +29,7 @@ final readonly class ProjectService
     }
 
     /**
-     * A project created without a stated status is Active (BR-6). The default is
+     * A project created without a stated status is Active. The default is
      * applied here rather than left to the column, so the created response carries
      * the status without a second read.
      *
@@ -67,7 +67,7 @@ final readonly class ProjectService
     }
 
     /**
-     * BR-9: a project and its tasks leave every list in the same moment, so both
+     * A project and its tasks leave every list in the same moment, so both
      * writes land together or neither does.
      *
      * @throws ProjectNotFoundException

@@ -25,7 +25,7 @@ final readonly class ProjectRepository implements ProjectRepositoryInterface
     /**
      * The owner's projects are selected once and both numbers are counted off that
      * one pass by `selectStatusCounts`. The soft-delete scope excludes deleted
-     * projects from both (FT-004 BR-7).
+     * projects from both.
      *
      * An aggregate with no `group by` always answers with exactly one row, so the
      * counts are read straight off it.
@@ -51,7 +51,7 @@ final readonly class ProjectRepository implements ProjectRepositoryInterface
 
     /**
      * The owner is set outside mass assignment, so a `user_id` in the request body
-     * can never reach it (BR-1, EC-7).
+     * can never reach it.
      *
      * @param  array{name: string, description: ?string, status: string}  $attributes
      */

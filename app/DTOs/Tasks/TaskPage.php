@@ -10,7 +10,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 /**
  * One page of tasks together with the empty-state message it earned, so the rule
  * choosing between `tasks_empty` and `tasks_no_matches` lives entirely in the
- * service and the controller stays a single expression (EC-1, EC-2).
+ * service and the controller stays a single expression.
  *
  * The message is null on any page that carries results.
  */

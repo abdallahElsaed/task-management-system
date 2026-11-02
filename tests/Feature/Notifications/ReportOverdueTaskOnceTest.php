@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 
 /*
- * BR-5 is the rule this file exists for: a task is named in exactly one email,
+ * The rule this file exists for: a task is named in exactly one email,
  * ever. Everything below is a way for a task to escape that rule, and none of
  * them may work.
  */
@@ -99,7 +99,7 @@ it('sends nothing about an overdue task whose project has been deleted', functio
 });
 
 /*
- * BR-10 / D-3. The backfill below is the one the switch-on migration runs, so
+ * The backfill below is the one the switch-on migration runs, so
  * this is the first sweep after the feature was deployed onto existing data.
  */
 it('sends nobody a backlog when the feature is switched on over overdue work', function () {

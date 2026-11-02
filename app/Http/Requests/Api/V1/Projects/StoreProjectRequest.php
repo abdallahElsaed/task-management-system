@@ -26,7 +26,7 @@ final class StoreProjectRequest extends FormRequest
 
     /**
      * An owner is never accepted from the body, so `user_id` has no rule and is
-     * dropped from the validated data (BR-1, EC-7).
+     * dropped from the validated data.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -57,8 +57,8 @@ final class StoreProjectRequest extends FormRequest
 
     /**
      * Trim the name so a whitespace-only value is rejected as blank rather than
-     * stored as blank (BR-3, EC-4), and lower-case the status so that `Active`
-     * and `active` name the same choice (EC-5).
+     * stored as blank, and lower-case the status so that `Active`
+     * and `active` name the same choice.
      */
     protected function prepareForValidation(): void
     {

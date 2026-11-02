@@ -91,9 +91,8 @@ has already released its tasks for the next sweep.
 
 ## Getting started
 
-Needs PHP 8.4 with `pdo_mysql`, `pdo_sqlite`, `mbstring` and `openssl`, plus Composer
-and MySQL. The locked dependencies do not install on PHP 8.3. CI runs PHP 8.4 and
-MySQL 8.4.
+Needs PHP 8.4 or newer with `pdo_mysql`, `pdo_sqlite`, `mbstring` and `openssl`, plus
+Composer and MySQL. CI runs PHP 8.4 and MySQL 8.4.
 
 ```bash
 composer install

@@ -130,8 +130,8 @@ class Task extends Model
 
     /**
      * Never named in an overdue email, which is the condition the sweep adds on
-     * top of `overdue`. Reporting is permanent, so this narrows by itself over
-     * time and never widens again.
+     * top of `overdue`. Reporting lasts unless a digest fails for good, so this
+     * narrows by itself over time.
      *
      * @param  Builder<$this>  $query
      */

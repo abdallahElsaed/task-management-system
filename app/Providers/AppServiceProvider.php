@@ -32,8 +32,8 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Refuse further login attempts for 60 seconds once the same email address
-     * has failed 5 times from the same caller.
+     * Refuse further login attempts for the rest of the minute once the same email
+     * address has failed 5 times from the same caller.
      *
      * Only the `401` responses count toward the limit, so a successful login or
      * a validation failure never consumes the budget. The check still runs
@@ -51,8 +51,8 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Refuse further registrations for 60 seconds once the same caller has made
-     * `REGISTRATIONS_PER_MINUTE` attempts.
+     * Refuse further registrations for the rest of the minute once the same caller
+     * has made `REGISTRATIONS_PER_MINUTE` attempts.
      *
      * Every attempt counts whatever its outcome: a success creates an account, and
      * a rejection can tell the caller that an address is already registered.

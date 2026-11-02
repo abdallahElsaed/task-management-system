@@ -17,10 +17,9 @@ final readonly class DashboardService
     ) {}
 
     /**
-     * The counts are read outside a transaction on purpose: asks
-     * that every number describe the moment the request arrived, not that all
-     * six describe the same instant, and a read-only summary does not justify
-     * holding a snapshot open.
+     * The counts are read outside a transaction on purpose: each number has to
+     * describe the moment the request arrived, not the same instant as the other
+     * five, and a read-only summary does not justify holding a snapshot open.
      */
     public function statsForOwner(User $owner): DashboardStats
     {

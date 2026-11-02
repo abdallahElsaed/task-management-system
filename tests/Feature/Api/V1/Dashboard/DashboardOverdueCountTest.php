@@ -5,7 +5,8 @@ use App\Models\Task;
 use App\Models\User;
 
 /*
- * Every date below is fixed, so the clock is frozen on one "today" rather than the day the suite runs.
+ * Every date below is fixed, so the clock is frozen on one "today" rather than the
+ * day the suite runs.
  */
 beforeEach(function () {
     $this->travelTo('2026-07-31');

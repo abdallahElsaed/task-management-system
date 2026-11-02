@@ -6,8 +6,8 @@ that has gone overdue. Everything is JSON. There is no user interface.
 
 - Register, log in and log out with Laravel Sanctum tokens.
 - Full CRUD on projects and on tasks, with filtering and title search on tasks.
-- A dashboard endpoint returning six counts in one read.
-- A queued daily digest that names each overdue task exactly once.
+- A dashboard endpoint returning six counts in one request.
+- A queued daily digest that claims each overdue task once.
 
 The endpoints are documented in the [API reference](docs/api.md).
 
@@ -23,7 +23,7 @@ The endpoints are documented in the [API reference](docs/api.md).
 
 ## How the overdue email works
 
-A task is named in one email, ever. A sweep claims a task by setting
+The rule is that a task is named in one email, ever. A sweep claims a task by setting
 `overdue_notified_at`, in the same transaction that queues the email.
 
 ```mermaid
@@ -39,7 +39,8 @@ sequenceDiagram
     Sweep->>DB: Which accounts have unreported overdue tasks?
     DB-->>Sweep: Account ids
     loop Each account
-        Sweep->>DB: BEGIN, then SELECT its tasks FOR UPDATE
+        Sweep->>DB: Which of its tasks are unreported? (no lock)
+        Sweep->>DB: BEGIN, then SELECT those ids FOR UPDATE
         alt Another sweep claimed them first
             DB-->>Sweep: No rows once that sweep commits
             Sweep->>DB: COMMIT, nothing queued
@@ -66,8 +67,9 @@ them. Pushed before it, the failure rolls the claim back and the next sweep retr
 
 **Why the tasks are read under a lock.** `withoutOverlapping` only keeps scheduled runs
 apart, so it does not cover a sweep started by hand. The row lock does: a second sweep
-waits, then finds the tasks already reported. If two sweeps deadlock, the database
-abandons one and that account's claim runs again, up to 3 times.
+waits, then finds the tasks already reported. Rows are locked by primary key, so a claim
+holds only its own tasks. If a deadlock still occurs, the database abandons one side and
+that claim is tried again, up to 3 attempts in all.
 
 **What this guarantees depends on the queue driver:**
 
@@ -76,11 +78,11 @@ abandons one and that account's claim runs again, up to 3 times.
 | `database`, on the default connection | Claim rolled back | Job rolled back with the claim |
 | `redis`, `sqs`, `beanstalkd` | Claim rolled back | The job survives, so the next sweep sends a duplicate |
 | `sync` | Sends inline, inside the transaction. A failed send rolls the claim back and stops the sweep | The email has gone, so the next sweep sends a duplicate |
+| `deferred`, `background`, `failover` | **Do not use for this job.** The push cannot fail inside the transaction, or fails over without rolling back | The claim can commit with no job behind it, losing the email |
 
 The tests force a failed push on `database` and a failed send on `sync`. The rest of
-the table follows from the same code path and is not tested here. Setting
-`DB_QUEUE_CONNECTION` to a separate connection puts the `database` driver in the `redis`
-row.
+the table comes from reading the framework's queue code and is not tested here. A
+separate `DB_QUEUE_CONNECTION` puts the `database` driver in the `redis` row.
 
 **What it does not guarantee.** Delivery is at least once: a worker that dies after the
 mail server accepts a message, but before the job is removed, sends it again on retry.
@@ -119,15 +121,12 @@ php artisan migrate --seed
 php artisan serve
 ```
 
-The API is at `http://localhost:8000/api/v1`. To send the overdue email, run a worker
-and start a sweep. With `MAIL_MAILER=log`, the email lands in `storage/logs/laravel.log`.
+The API is at `http://localhost:8000/api/v1`. To send the overdue email, run this worker
+and then `php artisan tasks:notify-overdue`. With `MAIL_MAILER=log`, the email lands in
+`storage/logs/laravel.log`.
 
 ```bash
 php artisan queue:work
-```
-
-```bash
-php artisan tasks:notify-overdue
 ```
 
 Scheduled sweeps also need `php artisan schedule:work`, or `schedule:run` from cron.

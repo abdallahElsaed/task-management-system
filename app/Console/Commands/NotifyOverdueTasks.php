@@ -10,9 +10,9 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
 /**
- * The scheduled entry point for the overdue email. It owns no logic of its own: the sweep decides
- * what went late and the queue delivers it, which is what keeps a command that
- * runs unattended down to something that can be read in one go.
+ * The scheduled entry point for the overdue email. It owns no logic of its own: the
+ * sweep decides what went late and the queue delivers it, which is what keeps a
+ * command that runs unattended down to something that can be read in one go.
  *
  * Safe to run by hand at any time, even while another run is in progress: a second
  * run finds nothing left to report and sends nothing.
@@ -23,7 +23,8 @@ final class NotifyOverdueTasks extends Command
 {
     /**
      * When the daily run happens, in the application's configured timezone.
-     * `routes/console.php` reads it, so the hour the product promises lives beside the command that keeps it.
+     * `routes/console.php` reads it, so the hour the product promises lives beside
+     * the command that keeps it.
      */
     public const string DAILY_RUN_TIME = '08:00';
 

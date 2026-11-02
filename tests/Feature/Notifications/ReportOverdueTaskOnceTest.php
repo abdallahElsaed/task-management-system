@@ -99,8 +99,8 @@ it('sends nothing about an overdue task whose project has been deleted', functio
 });
 
 /*
- * The backfill below is the one the switch-on migration runs, so
- * this is the first sweep after the feature was deployed onto existing data.
+ * This is the first sweep after the backfill below, which is meant for switching
+ * the feature on over existing data. No migration calls it yet.
  */
 it('sends nobody a backlog when the feature is switched on over overdue work', function () {
     Task::factory()->count(200)->for($this->project)->create(['due_date' => '2026-07-01']);

@@ -17,7 +17,7 @@ send it on every other endpoint:
 Authorization: Bearer 2|7QKsYcNnwU38kwVRzkSRvEpLl35O39MbcGMuncIC578bbe1e
 ```
 
-Only `register` and `login` are reachable without one.
+Of the endpoints below, only `register` and `login` are reachable without one.
 
 **Ownership** — you only ever see your own projects and tasks. Asking for a record
 belonging to another account answers `404`, exactly as asking for one that never
@@ -102,7 +102,7 @@ failing field is reported at once, never one at a time:
 | `GET` | `/tasks/{id}` | ✔ | View a task |
 | `PUT` `PATCH` | `/tasks/{id}` | ✔ | Update a task |
 | `DELETE` | `/tasks/{id}` | ✔ | Delete a task |
-| `GET` | `/dashboard` | ✔ | Six counts in one read |
+| `GET` | `/dashboard` | ✔ | Six counts in one request |
 
 ---
 
@@ -118,7 +118,7 @@ afterwards.
 | `name` | required, 2–255 characters |
 | `email` | required, a valid address, not already registered |
 | `password` | required, at least 8 characters, must match `password_confirmation` |
-| `password_confirmation` | required, must match `password` |
+| `password_confirmation` | must be sent and match `password` |
 
 ```json
 {
@@ -150,7 +150,8 @@ afterwards.
 `"This email address is already registered."`
 
 **`429`** — more than 10 attempts from the same IP address inside a minute. Every
-attempt counts, including rejected ones.
+attempt counts, including rejected ones. Behind a load balancer, configure trusted
+proxies, or every caller shares one limit.
 
 ```json
 { "success": false, "message": "Too many registration attempts. Please try again in 42 seconds." }

@@ -9,7 +9,7 @@ return new class extends Migration
     private const string INDEX = 'tasks_deleted_due_index';
 
     /**
-     * FT-003's default list reads every project the caller owns at once and orders
+     * The default task list reads every project the caller owns at once and orders
      * by due date, so the live rows have to be walked in due-date order. The
      * existing single-column `due_date` index cannot skip the deleted ones, and
      * `project_id, deleted_at` cannot help a list that spans every project.

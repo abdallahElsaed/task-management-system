@@ -17,7 +17,7 @@ final class DashboardController extends Controller
 
     /**
      * The endpoint takes no input at all, so there is nothing for a form request
-     * to validate: the caller is the whole query (FT-004 BR-1).
+     * to validate: the caller is the whole query.
      */
     public function show(Request $request): JsonResponse
     {

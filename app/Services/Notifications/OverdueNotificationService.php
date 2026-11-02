@@ -10,17 +10,25 @@ use App\Jobs\Notifications\SendOverdueTasksDigest;
 use Illuminate\Support\Facades\DB;
 
 /**
- * FT-005's daily sweep. It finds the tasks that went late without being finished,
+ * The daily overdue sweep. It finds the tasks that went late without being finished,
  * claims them, and hands one digest per account to the queue — it never sends
  * anything itself, so the scheduled command finishes in the time the queries take.
  */
 final readonly class OverdueNotificationService
 {
+    /**
+     * How many times one account's claim may run. Two sweeps, or a sweep and an edit
+     * to the same task, can deadlock over these rows. The database abandons one of
+     * them and rolls it back, so running it again is safe, and without that a sweep
+     * would stop there and leave its remaining accounts for the next run.
+     */
+    private const int CLAIM_ATTEMPTS = 3;
+
     public function __construct(private TaskRepositoryInterface $tasks) {}
 
     /**
      * Only the accounts that owe an email are visited, so an account with nothing
-     * newly overdue is never considered and cannot be sent an all-clear (BR-3).
+     * newly overdue is never considered and cannot be sent an all-clear.
      *
      * @return int the number of accounts a digest was queued for
      */
@@ -36,34 +44,53 @@ final readonly class OverdueNotificationService
     }
 
     /**
-     * Marking comes before queueing, and both land together or neither does. That
-     * order is what BR-5 and EC-13 rest on: from the moment the sweep claims these
-     * tasks no later run can find them, so a second run the same day — or a manual
-     * one — has nothing to send. A queue that refuses the job rolls the claim back
-     * with it, leaving the tasks for the next sweep rather than losing the email.
+     * Marking comes before queueing, and both land together or neither does. From
+     * the moment the sweep claims these tasks no later run can find them, so a
+     * second run the same day — or a manual one — has nothing to send.
      *
-     * The tasks are re-read here rather than carried over from the query that
-     * named the account, because the digest needs the titles and the claim needs
-     * every id, and only one of those is worth reading for accounts that turn out
-     * to have nothing.
+     * The job is pushed before the commit on purpose. Inside the transaction, a
+     * queue that refuses it rolls the claim back and leaves the tasks for the next
+     * sweep; held until after the commit, the same refusal would arrive once the
+     * claim was permanent and the email would be lost for good.
+     *
+     * On the `database` queue, on the default connection, the job row commits with
+     * the claim, so the two cannot come apart. `redis`, `sqs` and `beanstalkd` take the
+     * job before the commit does, so a commit that fails after a successful push
+     * leaves a job for tasks that stay unclaimed, and the next sweep names them again:
+     * a duplicate, never a lost email. `deferred`, `background` and `failover` do not
+     * have that property, so the README warns against them.
+     *
+     * This is a deliberate exception to keeping external calls out of a transaction,
+     * and it costs nothing on `database`. On `sqs` the push is an HTTP call, and on
+     * `sync` the email itself is sent, so the transaction waits on that call.
+     *
+     * The ids are found first, without a lock, and only those rows are then read under
+     * one, so the check and the claim are one step and a claim holds no other
+     * account's tasks. Two sweeps can reach an account at once, because
+     * `withoutOverlapping` only keeps scheduled runs apart: the first holds the rows
+     * until it commits, and the second then finds nothing left to claim.
+     *
+     * Every id the digest reports comes from that locked read, which is what lets the
+     * job release exactly those tasks if delivery fails for good.
      */
     private function queueDigestFor(int $ownerId): bool
     {
-        $tasks = $this->tasks->unreportedOverdueForOwner($ownerId);
+        $candidateIds = $this->tasks->unreportedOverdueIdsForOwner($ownerId);
 
-        if ($tasks->isEmpty()) {
-            return false;
-        }
+        return DB::transaction(function () use ($ownerId, $candidateIds): bool {
+            $tasks = $this->tasks->lockUnreportedOverdue($candidateIds);
 
-        $taskIds = $tasks->modelKeys();
-        $digest = OverdueTaskDigest::fromTasks($tasks);
+            if ($tasks->isEmpty()) {
+                return false;
+            }
 
-        DB::transaction(function () use ($ownerId, $taskIds, $digest): void {
+            $taskIds = $tasks->modelKeys();
+
             $this->tasks->markAsReported($taskIds);
 
-            SendOverdueTasksDigest::dispatch($ownerId, $taskIds, $digest)->afterCommit();
-        });
+            SendOverdueTasksDigest::dispatch($ownerId, $taskIds, OverdueTaskDigest::fromTasks($tasks))->beforeCommit();
 
-        return true;
+            return true;
+        }, self::CLAIM_ATTEMPTS);
     }
 }

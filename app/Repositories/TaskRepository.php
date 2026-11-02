@@ -47,8 +47,8 @@ final readonly class TaskRepository implements TaskRepositoryInterface
     /**
      * `ownedBy` carries the soft-delete rule for the task and for its project, so
      * a deleted project takes its tasks out of every count in the same moment.
-     * The owner's tasks are selected once and the four numbers are
-     * counted off that one pass by `selectStatusCounts`, which holds the SQL for.
+     * The owner's tasks are selected once and the four numbers are counted off
+     * that one pass by `selectStatusCounts`, which holds the SQL for them.
      *
      * An aggregate with no `group by` always answers with exactly one row, so the
      * counts are read straight off it.
@@ -133,21 +133,41 @@ final readonly class TaskRepository implements TaskRepositoryInterface
     }
 
     /**
+     * A plain read, so that finding an account's tasks locks nothing. How this query
+     * walks the table depends on the data, and a locking read locks everything it
+     * walks past, which can include other accounts' tasks. `lockUnreportedOverdue`
+     * takes the ids it finds and reaches them by key instead.
+     *
+     * @return list<int>
+     */
+    public function unreportedOverdueIdsForOwner(int $ownerId): array
+    {
+        return Task::ownedBy($ownerId)->overdue()->unreported()->pluck('id')->all();
+    }
+
+    /**
      * Only the four columns the email is built from are read, because an account
      * that has let a hundred tasks go late still has to fit in one message.
      *
      * `dueSoonestFirst` is the longest-overdue-first order read the other way
      * round: the oldest due date is the one that has been late longest.
      *
+     * The rows stay locked until the caller's transaction ends. A locking read sees
+     * the latest committed rows rather than a snapshot, so a second sweep waits here
+     * and then finds the tasks already reported instead of claiming them again.
+     * Reaching them by key means these rows are the only ones locked.
+     *
+     * @param  list<int>  $taskIds
      * @return Collection<int, Task>
      */
-    public function unreportedOverdueForOwner(int $ownerId): Collection
+    public function lockUnreportedOverdue(array $taskIds): Collection
     {
-        return Task::ownedBy($ownerId)
+        return Task::whereKey($taskIds)
             ->overdue()
             ->unreported()
             ->with('project:id,name')
             ->dueSoonestFirst()
+            ->lockForUpdate()
             ->get(['id', 'project_id', 'title', 'due_date']);
     }
 
@@ -171,8 +191,9 @@ final readonly class TaskRepository implements TaskRepositoryInterface
     }
 
     /**
-     *  run once when the feature is switched on. It reuses `overdue`
-     * so the tasks it silences are exactly the ones the sweep would have emailed.
+     * A backfill for switching the sweep on over existing data, so that the first run
+     * does not email a backlog. No migration calls it yet. It reuses `overdue` so the
+     * tasks it silences are exactly the ones the sweep would have emailed.
      */
     public function markAllOverdueAsReported(): int
     {
@@ -181,7 +202,7 @@ final readonly class TaskRepository implements TaskRepositoryInterface
 
     /**
      * Written through the base builder so that `updated_at` stays where it is:
-     * being named in an email is not an edit the account holder made, and
+     * being named in an email is not an edit the account holder made, and the
      * task payload reports that timestamp.
      *
      * @param  list<int>  $taskIds

@@ -50,9 +50,17 @@ interface TaskRepositoryInterface
     public function ownerIdsWithUnreportedOverdueTasks(): array;
 
     /**
-     * @return Collection<int, Task> longest overdue first
+     * @return list<int> the account's tasks the overdue sweep still owes an email
      */
-    public function unreportedOverdueForOwner(int $ownerId): Collection;
+    public function unreportedOverdueIdsForOwner(int $ownerId): array;
+
+    /**
+     * Must run inside a transaction, which holds the lock until it ends.
+     *
+     * @param  list<int>  $taskIds
+     * @return Collection<int, Task> those still unreported, longest overdue first
+     */
+    public function lockUnreportedOverdue(array $taskIds): Collection;
 
     /**
      * @param  list<int>  $taskIds

@@ -20,7 +20,7 @@ final readonly class TaskService
     public function __construct(private TaskRepositoryInterface $tasks) {}
 
     /**
-     * One page of the caller's tasks across every project they own (BR-14),
+     * One page of the caller's tasks across every project they own,
      * carrying whichever empty-state message it earned.
      */
     public function paginateForOwner(User $owner, TaskFilters $filters, int $perPage): TaskPage
@@ -32,12 +32,12 @@ final readonly class TaskService
 
     /**
      * A task created without a stated priority is Medium and without a stated
-     * status is Todo (BR-7, BR-8). The defaults are applied here rather than left
+     * status is Todo. The defaults are applied here rather than left
      * to the column, so the created response carries both without a second read.
      *
      * The parent project is not checked here: StoreTaskRequest has already proved
      * the caller owns it, which is what makes another account's project a `422`
-     * rather than a `404` (BR-3, AC-1.5).
+     * rather than a `404`.
      *
      * @param  array{project_id: int|string, title: string, description?: ?string, priority?: ?string, status?: ?string, due_date: string}  $data
      */
@@ -55,7 +55,7 @@ final readonly class TaskService
     /**
      * The single way a task is reached, so every unreachable id — one under
      * another account's project, one that never existed, one already deleted,
-     * one whose project was deleted — answers identically (BR-4).
+     * one whose project was deleted — answers identically.
      *
      * @throws TaskNotFoundException
      */
@@ -67,7 +67,7 @@ final readonly class TaskService
 
     /**
      * `project_id` never reaches here: UpdateTaskRequest carries no rule for it,
-     * so it is dropped from the validated data (BR-2, EC-15).
+     * so it is dropped from the validated data.
      *
      * @param  array<string, mixed>  $data
      *
@@ -87,14 +87,14 @@ final readonly class TaskService
     }
 
     /**
-     * EC-1 and EC-2 read almost alike, and the difference matters: an account that
+     * The two empty states read almost alike, and the difference matters: an account that
      * has never created a task is told so, while one whose filters matched nothing
      * is told that instead.
      *
      * The extra existence check runs only when the page came back empty, and only
      * when filters were active — so the common path costs nothing. A page past the
      * last page is not an empty state at all, because `total()` counts the whole
-     * result rather than the page (EC-17).
+     * result rather than the page.
      *
      * @param  LengthAwarePaginator<int, Task>  $page
      */

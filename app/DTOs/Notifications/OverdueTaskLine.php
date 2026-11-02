@@ -8,8 +8,8 @@ use App\Models\Task;
 use Carbon\CarbonImmutable;
 
 /**
- * One line of the overdue email, carrying exactly what BR-8 says a task is named
- * by. It travels inside the queued digest, so it holds the three values read at
+ * One line of the overdue email, carrying exactly what a task is named by. It
+ * travels inside the queued digest, so it holds the three values read at
  * sweep time rather than a task the worker would have to load again.
  */
 final readonly class OverdueTaskLine

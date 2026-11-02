@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Enums\Projects;
 
 /**
- * The three lifecycle states a project moves between, in any direction (BR-5, BR-7).
+ * The three lifecycle states a project moves between, in any direction.
  */
 enum ProjectStatus: string
 {

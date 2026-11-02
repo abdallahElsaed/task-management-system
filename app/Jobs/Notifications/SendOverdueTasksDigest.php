@@ -20,7 +20,7 @@ use Throwable;
  * ever waits on an email.
  *
  * The sweep has already marked every task in `$taskIds` as reported, which is
- * what stops a second run the same day from sending the message twice (EC-13).
+ * what stops a second run the same day from sending the message twice.
  * That claim is only released if delivery fails for good — see `failed`.
  */
 final class SendOverdueTasksDigest implements ShouldQueue
@@ -30,7 +30,7 @@ final class SendOverdueTasksDigest implements ShouldQueue
     private const int MAX_ATTEMPTS = 3;
 
     /**
-     * What the log carries when BR-9's last attempt has gone. Operator-facing, so
+     * What the log carries when the last attempt has gone. Operator-facing, so
      * it sits here rather than beside the email's microcopy.
      */
     private const string DELIVERY_FAILED = 'Overdue task digest could not be delivered.';
@@ -68,7 +68,7 @@ final class SendOverdueTasksDigest implements ShouldQueue
     }
 
     /**
-     * BR-7: the digest goes to the address on the owning account and nowhere else.
+     * The digest goes to the address on the owning account and nowhere else.
      */
     public function handle(UserRepositoryInterface $users): void
     {
@@ -82,7 +82,7 @@ final class SendOverdueTasksDigest implements ShouldQueue
     }
 
     /**
-     * BR-9. Every attempt has failed, so the claim the sweep put on these tasks is
+     * Every attempt has failed, so the claim the sweep put on these tasks is
      * released and tomorrow's sweep finds them again. The queue has already
      * recorded the failure with this job's payload — the account and the attempt
      * are both in it — and the log line puts the same facts where they are read

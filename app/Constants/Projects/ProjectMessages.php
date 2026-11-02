@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Constants\Projects;
 
 /**
- * One constant per row of FT-002's Content & Microcopy table, so a wording change
+ * One constant per message, so a wording change
  * is a single edit and every message the module can return is auditable in one place.
  *
  * Status is the one exception — ProjectStatus::invalidMessage() derives that copy

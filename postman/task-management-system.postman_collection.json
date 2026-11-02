@@ -83,7 +83,7 @@
               "host": ["{{base_url}}"],
               "path": ["register"]
             },
-            "description": "Creates an account and issues its first token, so there is no need to log in straight afterwards.\n\nSend a second time with the same email address to see the `422` rejection.\n\n**Responses:** `201` the account and its token · `422` a field was rejected."
+            "description": "Creates an account and issues its first token, so there is no need to log in straight afterwards.\n\nMore than 10 attempts a minute from one IP address answer `429`.\n\nSend a second time with the same email address to see the `422` rejection.\n\n**Responses:** `201` the account and its token · `422` a field was rejected."
           }
         },
         {
@@ -126,7 +126,7 @@
               "host": ["{{base_url}}"],
               "path": ["login"]
             },
-            "description": "**Run this first.** The seeded demo credentials are already filled in.\n\nSix failed attempts on the same email address inside a minute are throttled rather than checked.\n\n**Responses:** `200` the account and a fresh token · `401` the credentials do not match · `422` a field was rejected · `429` throttled."
+            "description": "**Run this first.** The seeded demo credentials are already filled in.\n\nAfter five failed attempts on the same email address inside a minute, further attempts are throttled rather than checked.\n\n**Responses:** `200` the account and a fresh token · `401` the credentials do not match · `422` a field was rejected · `429` throttled."
           }
         },
         {

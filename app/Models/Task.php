@@ -79,9 +79,9 @@ class Task extends Model
     }
 
     /**
-     * Pending is Todo and In Progress together (FT-004 Metric Definitions, D-1).
+     * Pending is Todo and In Progress together.
      * An overdue task is pending as well: the two counts overlap rather than
-     * divide the work between them (FT-004 BR-3).
+     * divide the work between them.
      *
      * @param  Builder<$this>  $query
      */
@@ -129,9 +129,9 @@ class Task extends Model
     }
 
     /**
-     * Never named in an overdue email, which is the condition adds on
-     * top of `overdue`. Reporting is permanent, so this narrows by itself over
-     * time and never widens again.
+     * Never named in an overdue email, which is the condition the sweep adds on
+     * top of `overdue`. Reporting lasts unless a digest fails for good, so this
+     * narrows by itself over time.
      *
      * @param  Builder<$this>  $query
      */

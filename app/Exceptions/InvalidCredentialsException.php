@@ -10,7 +10,7 @@ use Exception;
  * Thrown when a login attempt fails, whatever the cause.
  *
  * The message is deliberately identical for an unknown email, a wrong password,
- * or both, so the response never reveals whether an account exists (BR-4).
+ * or both, so the response never reveals whether an account exists.
  */
 final class InvalidCredentialsException extends Exception
 {

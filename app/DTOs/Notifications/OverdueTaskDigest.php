@@ -16,8 +16,8 @@ use Illuminate\Support\Collection;
 final readonly class OverdueTaskDigest
 {
     /**
-     *  Beyond this the email counts the rest instead of naming them,
-     * so one bad month cannot produce a message nobody can read.
+     * Beyond this the email counts the rest instead of naming them, so one bad month
+     * cannot produce a message nobody can read.
      */
     public const int MAX_LISTED_TASKS = 50;
 
@@ -31,7 +31,7 @@ final readonly class OverdueTaskDigest
     ) {}
 
     /**
-     * @param  Collection<int, Task>  $tasks  longest overdue first (BR-4)
+     * @param  Collection<int, Task>  $tasks  longest overdue first
      */
     public static function fromTasks(Collection $tasks): self
     {

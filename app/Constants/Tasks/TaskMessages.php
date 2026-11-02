@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Constants\Tasks;
 
 /**
- * One constant per row of FT-003's Content & Microcopy table, so a wording change
+ * One constant per message, so a wording change
  * is a single edit and every message the module can return is auditable in one place.
  *
  * Priority and status are the two exceptions — TaskPriority::invalidMessage() and

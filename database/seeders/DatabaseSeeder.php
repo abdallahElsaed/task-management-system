@@ -10,7 +10,7 @@ use Illuminate\Database\Seeder;
 /**
  * Everything `db:seed` builds. Running it a second time leaves a usable database
  * rather than a duplicated one, because each seeder below rebuilds its own account's
- * data instead of adding to it (BR-8, EC-4).
+ * data instead of adding to it.
  */
 class DatabaseSeeder extends Seeder
 {

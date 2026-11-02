@@ -1,9 +1,9 @@
 {{--
-    FT-005's email. Every word in it comes from OverdueNotificationMessages, which
-    holds the Content & Microcopy table one constant per row.
+    The overdue email. Every word in it comes from OverdueNotificationMessages, which
+    holds each message as one constant.
 
     The charset is declared because a task title is reproduced exactly as it was
-    entered, in whatever script that was (EC-15, A-2).
+    entered, in whatever script that was.
 --}}
 @use(App\Constants\Notifications\OverdueNotificationMessages as Copy)
 

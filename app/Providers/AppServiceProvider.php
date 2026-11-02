@@ -12,6 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AppServiceProvider extends ServiceProvider
 {
+    private const int REGISTRATIONS_PER_MINUTE = 10;
+
     /**
      * Register any application services.
      */
@@ -26,11 +28,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureLoginRateLimiter();
+        $this->configureRegisterRateLimiter();
     }
 
     /**
-     * Refuse further login attempts for 60 seconds once the same email address
-     * has failed 5 times from the same caller.
+     * Refuse further login attempts for the rest of the minute once the same email
+     * address has failed 5 times from the same caller.
      *
      * Only the `401` responses count toward the limit, so a successful login or
      * a validation failure never consumes the budget. The check still runs
@@ -44,6 +47,22 @@ class AppServiceProvider extends ServiceProvider
             ->after(fn (Response $response) => $response->getStatusCode() === Response::HTTP_UNAUTHORIZED)
             ->response(fn (Request $request, array $headers) => ApiResponse::tooManyRequests(
                 "Too many login attempts. Please try again in {$headers['Retry-After']} seconds."
+            )->withHeaders($headers)));
+    }
+
+    /**
+     * Refuse further registrations for the rest of the minute once the same caller
+     * has made `REGISTRATIONS_PER_MINUTE` attempts.
+     *
+     * Every attempt counts whatever its outcome: a success creates an account, and
+     * a rejection can tell the caller that an address is already registered.
+     */
+    private function configureRegisterRateLimiter(): void
+    {
+        RateLimiter::for('register', fn (Request $request) => Limit::perMinute(self::REGISTRATIONS_PER_MINUTE)
+            ->by($request->ip())
+            ->response(fn (Request $request, array $headers) => ApiResponse::tooManyRequests(
+                "Too many registration attempts. Please try again in {$headers['Retry-After']} seconds."
             )->withHeaders($headers)));
     }
 }

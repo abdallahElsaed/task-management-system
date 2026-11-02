@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 
 /*
- * BR-4: however many tasks an account let go late, it gets one message. Beyond
+ * However many tasks an account let go late, it gets one message. Beyond
  * fifty the message counts the rest instead of naming them.
  */
 beforeEach(function () {

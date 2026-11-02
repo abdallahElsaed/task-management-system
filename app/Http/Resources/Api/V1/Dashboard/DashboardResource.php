@@ -9,8 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * The six keys of FT-004's Metric Definitions, all six of them whatever the
- * account holds and even when every one reads 0 (BR-9, BR-10). Nothing else
+ * The six dashboard counts, all six of them whatever the
+ * account holds and even when every one reads 0. Nothing else
  * reaches the caller: no project name, no task title, no identifier.
  *
  * @mixin DashboardStats

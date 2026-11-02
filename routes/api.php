@@ -6,7 +6,9 @@ use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\TaskController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('register', [AuthController::class, 'register'])->name('auth.register');
+Route::post('register', [AuthController::class, 'register'])
+    ->middleware('throttle:register')
+    ->name('auth.register');
 Route::post('login', [AuthController::class, 'login'])
     ->middleware('throttle:login')
     ->name('auth.login');
@@ -33,7 +35,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
     });
 
     // The list spans every project the caller owns, with the project as an
-    // optional filter rather than a path segment (FT-003 D-5).
+    // optional filter rather than a path segment.
     Route::prefix('tasks')->name('tasks.')->group(function (): void {
         Route::get('/', [TaskController::class, 'index'])->name('index');
         Route::post('/', [TaskController::class, 'store'])->name('store');

@@ -25,5 +25,12 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
-.claude
-task
+/task
+
+# Claude Code: the skills Boost manages are shared, everything else stays local.
+/.claude/*
+!/.claude/skills/
+/.claude/skills/*
+!/.claude/skills/laravel-best-practices/
+!/.claude/skills/pest-testing/
+!/.claude/skills/tailwindcss-development/

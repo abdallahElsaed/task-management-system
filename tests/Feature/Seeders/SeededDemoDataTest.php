@@ -9,7 +9,7 @@ use App\Models\User;
 use Database\Seeders\DemoAccountSeeder;
 
 /**
- * The dataset a reviewer lands in (FT-006 BR-6, BR-7, BR-8). Its counts are what make
+ * The dataset a reviewer lands in. Its counts are what make
  * the dashboard answer with six numbers above zero on the first call, so they are
  * asserted here rather than left to be noticed once they have drifted.
  */

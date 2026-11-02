@@ -27,7 +27,7 @@ final class TaskResource extends JsonResource
             'description' => $this->description,
             'priority' => $this->priority->value,
             'status' => $this->status->value,
-            // A calendar date with no time of day (BR-10).
+            // A calendar date with no time of day.
             'due_date' => $this->due_date?->toDateString(),
             'is_overdue' => $this->isOverdue(),
             'created_at' => $this->created_at?->toIso8601String(),

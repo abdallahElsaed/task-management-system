@@ -39,11 +39,11 @@ final class IndexTasksRequest extends FormRequest
 
     /**
      * A filter value outside its allowed set rejects the whole request rather than
-     * being ignored, so no page is returned at all (BR-18, EC-5). The Enum rules
+     * being ignored, so no page is returned at all. The Enum rules
      * are what deliver that, and they cannot fall out of step with the cases.
      *
      * The project filter is scoped to the caller, so another account's project id
-     * is rejected the same way an unknown one is (AC-5.5).
+     * is rejected the same way an unknown one is.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -98,11 +98,11 @@ final class IndexTasksRequest extends FormRequest
     }
 
     /**
-     * The four narrowing terms, ready for the repository to combine with AND (BR-17).
+     * The four narrowing terms, ready for the repository to combine with AND.
      *
      * A search term that trimmed away becomes null rather than an empty string,
      * which is what makes it an absent filter and returns the unfiltered page with
-     * the unfiltered message (EC-10, AC-6.5).
+     * the unfiltered message.
      */
     public function filters(): TaskFilters
     {
@@ -120,10 +120,10 @@ final class IndexTasksRequest extends FormRequest
     }
 
     /**
-     * Trim the search term (BR-19, EC-7) and lower-case the two choices so that
+     * Trim the search term and lower-case the two choices so that
      * `Todo` and `todo` name the same value.
      *
-     * BR-18 governs filter *values*: a parameter sent with nothing in it carries no
+     * Only filter *values* are rejected: a parameter sent with nothing in it carries no
      * value to reject, so it becomes null and reads as no filter rather than as an
      * unrecognised one. The `nullable` rule then skips the rest of its chain.
      */

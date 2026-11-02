@@ -24,9 +24,9 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            // Drives the task count on the project list and the cascade delete (BR-9).
+            // Drives the task count on the project list and the cascade delete.
             $table->index(['project_id', 'deleted_at']);
-            // FT-003's default list order and FT-004's overdue count.
+            // The default task list order and the dashboard's overdue count.
             $table->index(['due_date']);
         });
     }
